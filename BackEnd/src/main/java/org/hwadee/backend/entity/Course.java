@@ -88,6 +88,10 @@ public class Course {
      */
     private Integer status;
 
+    public static final int CLOSED = 0;
+    public static final int OPEN = 1;
+    public static final int FULL = 2;
+
     /**
      * 创建时间
      */

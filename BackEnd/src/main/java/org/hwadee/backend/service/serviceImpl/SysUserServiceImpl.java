@@ -44,7 +44,7 @@ public class SysUserServiceImpl implements SysUserService {
             }
 
             // 检查用户状态
-            if (user.getStatus() == 0) {
+            if (user.getStatus() == SysUser.DISABLE) {
                 return Result.error("用户已被禁用");
             }
 
@@ -95,7 +95,7 @@ public class SysUserServiceImpl implements SysUserService {
 
             // 密码加密
             user.setPassword(MD5Util.encrypt(user.getPassword()));
-            user.setStatus(1); // 默认启用
+            user.setStatus(SysUser.ENABLE); // 默认启用
             user.setCreateTime(LocalDateTime.now());
             user.setUpdateTime(LocalDateTime.now());
 

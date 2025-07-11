@@ -100,6 +100,10 @@ public class LearningResource {
      */
     private Integer status;
 
+    private static final int OFF = 0;
+    private static final int ON = 1;
+    private static final int UNDER_REVIEW = 2;
+
     /**
      * 创建时间
      */

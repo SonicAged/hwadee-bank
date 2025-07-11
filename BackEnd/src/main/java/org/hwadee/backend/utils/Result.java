@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 /**
  * 统一响应结果类
+ * 提供了 success, error, unauthorize, forbiden 的接口
+ * @Param code
+ * @Param message
+ * @Param data
  */
 @Data
 @AllArgsConstructor
