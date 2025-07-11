@@ -1,7 +1,7 @@
 -- 终身学习学分银行平台数据库脚本
 -- 数据库名称：BankAnalysis
 -- MySQL版本：8.0
--- 用户名：root，密码：123456
+-- 用户名：bank，密码：123456
 
 CREATE DATABASE IF NOT EXISTS BankAnalysis DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE BankAnalysis;
