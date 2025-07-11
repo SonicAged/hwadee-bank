@@ -66,7 +66,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { useAuthStore, type LoginData } from '@/stores/auth'
+import { useAuthStore, type LoginData } from '../../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
