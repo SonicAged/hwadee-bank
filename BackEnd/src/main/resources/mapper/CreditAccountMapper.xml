@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.CreditAccountMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CreditAccountResultMap" type="org.hwadee.backend.entity.CreditAccount">
+        <id property="accountId" column="account_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalCredits" column="total_credits"/>
+        <result property="availableCredits" column="available_credits"/>
+        <result property="frozenCredits" column="frozen_credits"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 插入学分账户 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.CreditAccount" useGeneratedKeys="true" keyProperty="accountId">
+        INSERT INTO credit_account (
+            user_id, total_credits, available_credits, frozen_credits, create_time, update_time
+        ) VALUES (
+            #{userId}, #{totalCredits}, #{availableCredits}, #{frozenCredits}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据用户ID查询账户 -->
+    <select id="selectByUserId" parameterType="long" resultMap="CreditAccountResultMap">
+        SELECT * FROM credit_account WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据账户ID查询 -->
+    <select id="selectByAccountId" parameterType="long" resultMap="CreditAccountResultMap">
+        SELECT * FROM credit_account WHERE account_id = #{accountId}
+    </select>
+
+    <!-- 更新账户信息 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.CreditAccount">
+        UPDATE credit_account 
+        SET total_credits = #{totalCredits}, 
+            available_credits = #{availableCredits}, 
+            frozen_credits = #{frozenCredits}, 
+            update_time = #{updateTime}
+        WHERE account_id = #{accountId}
+    </update>
+
+    <!-- 删除账户 -->
+    <delete id="deleteByUserId" parameterType="long">
+        DELETE FROM credit_account WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 统计所有账户数量 -->
+    <select id="countAllAccounts" resultType="long">
+        SELECT COUNT(*) FROM credit_account
+    </select>
+
+    <!-- 获取学分排行榜 -->
+    <select id="selectTopUsersByCredits" resultMap="CreditAccountResultMap">
+        SELECT ca.*, su.real_name 
+        FROM credit_account ca 
+        LEFT JOIN sys_user su ON ca.user_id = su.user_id 
+        ORDER BY ca.total_credits DESC 
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

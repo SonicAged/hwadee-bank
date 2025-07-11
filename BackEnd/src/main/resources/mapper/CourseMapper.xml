@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.CourseMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CourseResultMap" type="org.hwadee.backend.entity.Course">
+        <id property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="courseCode" column="course_code"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="instructorId" column="instructor_id"/>
+        <result property="description" column="description"/>
+        <result property="syllabus" column="syllabus"/>
+        <result property="creditHours" column="credit_hours"/>
+        <result property="creditValue" column="credit_value"/>
+        <result property="maxStudents" column="max_students"/>
+        <result property="currentStudents" column="current_students"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 插入课程 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.Course" useGeneratedKeys="true" keyProperty="courseId">
+        INSERT INTO course (
+            course_name, course_code, category_id, instructor_id, description, 
+            syllabus, credit_hours, credit_value, max_students, current_students, 
+            start_date, end_date, status, create_time, update_time
+        ) VALUES (
+            #{courseName}, #{courseCode}, #{categoryId}, #{instructorId}, #{description},
+            #{syllabus}, #{creditHours}, #{creditValue}, #{maxStudents}, #{currentStudents},
+            #{startDate}, #{endDate}, #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE course_id = #{courseId}
+    </select>
+
+    <!-- 根据课程编码查询 -->
+    <select id="selectByCourseCode" parameterType="string" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE course_code = #{courseCode}
+    </select>
+
+    <!-- 根据分类查询课程 -->
+    <select id="selectByCategory" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE category_id = #{categoryId} AND status = 1 ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据教师查询课程 -->
+    <select id="selectByInstructor" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE instructor_id = #{instructorId} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 查询所有课程（分页） -->
+    <select id="selectAll" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE status = 1 ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据关键词搜索课程 -->
+    <select id="searchByKeyword" resultMap="CourseResultMap">
+        SELECT * FROM course 
+        WHERE status = 1 AND (course_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 更新课程信息 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.Course">
+        UPDATE course 
+        SET course_name = #{courseName}, course_code = #{courseCode}, 
+            category_id = #{categoryId}, instructor_id = #{instructorId}, 
+            description = #{description}, syllabus = #{syllabus},
+            credit_hours = #{creditHours}, credit_value = #{creditValue},
+            max_students = #{maxStudents}, current_students = #{currentStudents},
+            start_date = #{startDate}, end_date = #{endDate}, 
+            status = #{status}, update_time = #{updateTime}
+        WHERE course_id = #{courseId}
+    </update>
+
+    <!-- 更新学生数量 -->
+    <update id="updateStudentCount">
+        UPDATE course SET current_students = #{currentStudents} WHERE course_id = #{courseId}
+    </update>
+
+    <!-- 删除课程 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM course WHERE course_id = #{courseId}
+    </delete>
+
+    <!-- 统计课程数量 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM course WHERE status = 1
+    </select>
+
+    <!-- 根据分类统计 -->
+    <select id="countByCategory" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM course WHERE category_id = #{categoryId} AND status = 1
+    </select>
+
+    <!-- 根据教师统计 -->
+    <select id="countByInstructor" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM course WHERE instructor_id = #{instructorId}
+    </select>
+
+</mapper> 

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.CreditApplicationMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CreditApplicationResultMap" type="org.hwadee.backend.entity.CreditApplication">
+        <id property="applicationId" column="application_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="applicationType" column="application_type"/>
+        <result property="achievementName" column="achievement_name"/>
+        <result property="achievementDescription" column="achievement_description"/>
+        <result property="appliedCredits" column="applied_credits"/>
+        <result property="evidenceFiles" column="evidence_files"/>
+        <result property="currentStep" column="current_step"/>
+        <result property="status" column="status"/>
+        <result property="rejectionReason" column="rejection_reason"/>
+        <result property="approvedCredits" column="approved_credits"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="reviewTime" column="review_time"/>
+    </resultMap>
+
+    <!-- 插入学分申请 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.CreditApplication" useGeneratedKeys="true" keyProperty="applicationId">
+        INSERT INTO credit_application (
+            user_id, application_type, achievement_name, achievement_description, applied_credits, 
+            evidence_files, current_step, status, apply_time
+        ) VALUES (
+            #{userId}, #{applicationType}, #{achievementName}, #{achievementDescription}, #{appliedCredits},
+            #{evidenceFiles}, #{currentStep}, #{status}, #{applyTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="CreditApplicationResultMap">
+        SELECT * FROM credit_application WHERE application_id = #{applicationId}
+    </select>
+
+    <!-- 根据用户ID查询申请列表 -->
+    <select id="selectByUserId" parameterType="long" resultMap="CreditApplicationResultMap">
+        SELECT * FROM credit_application WHERE user_id = #{userId} ORDER BY apply_time DESC
+    </select>
+
+    <!-- 查询所有申请（分页） -->
+    <select id="selectAll" resultMap="CreditApplicationResultMap">
+        SELECT * FROM credit_application ORDER BY apply_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据状态查询申请 -->
+    <select id="selectByStatus" parameterType="int" resultMap="CreditApplicationResultMap">
+        SELECT * FROM credit_application WHERE status = #{status} ORDER BY apply_time DESC
+    </select>
+
+    <!-- 更新申请状态 -->
+    <update id="updateStatus">
+        UPDATE credit_application 
+        SET status = #{status}, rejection_reason = #{rejectionReason}, review_time = NOW()
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- 更新申请信息 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.CreditApplication">
+        UPDATE credit_application 
+        SET application_type = #{applicationType}, achievement_name = #{achievementName}, 
+            achievement_description = #{achievementDescription}, applied_credits = #{appliedCredits},
+            evidence_files = #{evidenceFiles}
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- 删除申请 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM credit_application WHERE application_id = #{applicationId}
+    </delete>
+
+    <!-- 统计申请数量 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM credit_application
+    </select>
+
+    <!-- 根据条件统计 -->
+    <select id="countByStatus" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM credit_application WHERE status = #{status}
+    </select>
+
+    <!-- 统计用户申请数量 -->
+    <select id="countByUserId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM credit_application WHERE user_id = #{userId}
+    </select>
+
+    <!-- 统计用户特定状态的申请数量 -->
+    <select id="countByUserIdAndStatus" resultType="int">
+        SELECT COUNT(*) FROM credit_application WHERE user_id = #{userId} AND status = #{status}
+    </select>
+
+    <!-- 根据条件搜索申请列表 -->
+    <select id="searchByCondition" resultMap="CreditApplicationResultMap">
+        SELECT * FROM credit_application 
+        WHERE 1=1
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="applicationType != null and applicationType != ''">
+            AND application_type LIKE CONCAT('%', #{applicationType}, '%')
+        </if>
+        <if test="achievementName != null and achievementName != ''">
+            AND achievement_name LIKE CONCAT('%', #{achievementName}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY apply_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+</mapper> 

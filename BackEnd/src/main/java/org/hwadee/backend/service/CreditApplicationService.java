@@ -59,4 +59,9 @@ public interface CreditApplicationService {
      * 根据状态统计申请数量
      */
     Result<Integer> getApplicationCountByStatus(Integer status);
+
+    /**
+     * 根据条件搜索申请列表
+     */
+    Result<List<CreditApplication>> searchApplications(Long userId, String applicationType, String achievementName, Integer status, int page, int size);
 } 

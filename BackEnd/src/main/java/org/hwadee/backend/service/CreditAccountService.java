@@ -1,7 +1,10 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.CreditAccount;
+import org.hwadee.backend.entity.CreditApplication;
 import org.hwadee.backend.utils.Result;
+
+import java.math.BigDecimal;
 
 /**
  * 学分账户服务接口
@@ -26,20 +29,25 @@ public interface CreditAccountService {
     /**
      * 增加学分
      */
-    Result<String> addCredits(Long userId, Double credits);
+    Result<String> addCredits(Long userId, BigDecimal credits);
+
+    /**
+     * 增加学分（带详细信息）
+     */
+    Result<String> addCredits(Long userId, BigDecimal credits, String creditType, String creditSource, String remark);
 
     /**
      * 消费学分
      */
-    Result<String> deductCredits(Long userId, Double credits);
+    Result<String> deductCredits(Long userId, BigDecimal credits);
 
     /**
      * 冻结学分
      */
-    Result<String> freezeCredits(Long userId, Double credits);
+    Result<String> freezeCredits(Long userId, BigDecimal credits);
 
     /**
      * 解冻学分
      */
-    Result<String> unfreezeCredits(Long userId, Double credits);
+    Result<String> unfreezeCredits(Long userId, BigDecimal credits);
 } 

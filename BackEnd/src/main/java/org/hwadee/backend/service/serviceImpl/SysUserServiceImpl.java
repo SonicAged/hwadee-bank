@@ -4,6 +4,7 @@ import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.mapper.SysUserMapper;
 import org.hwadee.backend.service.SysUserService;
+import org.hwadee.backend.service.CreditAccountService;
 import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.MD5Util;
 import org.hwadee.backend.utils.Result;
@@ -25,6 +26,9 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private CreditAccountService creditAccountService;
 
     @Override
     public Result<String> login(LoginDTO loginDTO) {
@@ -102,6 +106,13 @@ public class SysUserServiceImpl implements SysUserService {
             // 插入用户
             int result = userMapper.insert(user);
             if (result > 0) {
+                // 自动创建学分账户
+                try {
+                    creditAccountService.createAccount(user.getUserId());
+                } catch (Exception e) {
+                    // 学分账户创建失败不影响用户注册，只记录日志
+                    System.err.println("自动创建学分账户失败，用户ID: " + user.getUserId() + ", 错误: " + e.getMessage());
+                }
                 return Result.success("注册成功");
             } else {
                 return Result.error("注册失败");

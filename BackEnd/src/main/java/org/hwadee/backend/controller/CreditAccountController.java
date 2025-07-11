@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 /**
  * 学分账户控制器
  */
@@ -64,7 +66,7 @@ public class CreditAccountController {
      * 增加学分
      */
     @PostMapping("/add")
-    public Result<String> addCredits(@RequestParam Long userId, @RequestParam Double credits) {
+    public Result<String> addCredits(@RequestParam Long userId, @RequestParam BigDecimal credits) {
         try {
             logger.info("增加学分，用户ID: {}, 学分: {}", userId, credits);
             return accountService.addCredits(userId, credits);
@@ -78,7 +80,7 @@ public class CreditAccountController {
      * 消费学分
      */
     @PostMapping("/deduct")
-    public Result<String> deductCredits(@RequestParam Long userId, @RequestParam Double credits) {
+    public Result<String> deductCredits(@RequestParam Long userId, @RequestParam BigDecimal credits) {
         try {
             logger.info("消费学分，用户ID: {}, 学分: {}", userId, credits);
             return accountService.deductCredits(userId, credits);
@@ -92,7 +94,7 @@ public class CreditAccountController {
      * 冻结学分
      */
     @PostMapping("/freeze")
-    public Result<String> freezeCredits(@RequestParam Long userId, @RequestParam Double credits) {
+    public Result<String> freezeCredits(@RequestParam Long userId, @RequestParam BigDecimal credits) {
         try {
             logger.info("冻结学分，用户ID: {}, 学分: {}", userId, credits);
             return accountService.freezeCredits(userId, credits);
@@ -106,7 +108,7 @@ public class CreditAccountController {
      * 解冻学分
      */
     @PostMapping("/unfreeze")
-    public Result<String> unfreezeCredits(@RequestParam Long userId, @RequestParam Double credits) {
+    public Result<String> unfreezeCredits(@RequestParam Long userId, @RequestParam BigDecimal credits) {
         try {
             logger.info("解冻学分，用户ID: {}, 学分: {}", userId, credits);
             return accountService.unfreezeCredits(userId, credits);

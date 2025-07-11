@@ -46,4 +46,14 @@ public interface CreditRecordMapper {
      * 根据条件统计学分记录数量
      */
     long countByCondition(@Param("userId") Long userId, @Param("creditType") String creditType, @Param("operationType") Integer operationType, @Param("status") Integer status);
+
+    /**
+     * 统计所有记录数量
+     */
+    long countAllRecords();
+
+    /**
+     * 根据用户ID和操作类型统计记录数量
+     */
+    long countByUserIdAndOperationType(@Param("userId") Long userId, @Param("operationType") Integer operationType);
 } 
