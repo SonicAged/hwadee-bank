@@ -99,4 +99,18 @@ public class Result<T> {
     public static <T> Result<T> forbidden(String message) {
         return new Result<>(403, message, null);
     }
+
+    /**
+     * 判断是否成功
+     */
+    public boolean isSuccess() {
+        return this.code != null && this.code == 200;
+    }
+
+    /**
+     * 判断是否失败
+     */
+    public boolean isError() {
+        return !isSuccess();
+    }
 } 

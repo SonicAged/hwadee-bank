@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.OperationLogMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="OperationLogResultMap" type="org.hwadee.backend.entity.OperationLog">
+        <id property="logId" column="log_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="operationType" column="operation_type"/>
+        <result property="operationDesc" column="operation_desc"/>
+        <result property="requestMethod" column="request_method"/>
+        <result property="requestUrl" column="request_url"/>
+        <result property="requestParams" column="request_params"/>
+        <result property="responseData" column="response_data"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="executionTime" column="execution_time"/>
+        <result property="status" column="status"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!-- 插入操作日志 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.OperationLog" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO operation_log (
+            user_id, username, operation_type, operation_desc, request_method, 
+            request_url, request_params, response_data, ip_address, user_agent, 
+            execution_time, status, error_msg, create_time
+        ) VALUES (
+            #{userId}, #{username}, #{operationType}, #{operationDesc}, #{requestMethod},
+            #{requestUrl}, #{requestParams}, #{responseData}, #{ipAddress}, #{userAgent},
+            #{executionTime}, #{status}, #{errorMsg}, #{createTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log WHERE log_id = #{logId}
+    </select>
+
+    <!-- 根据用户ID查询日志 -->
+    <select id="selectByUserId" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log WHERE user_id = #{userId} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据操作类型查询 -->
+    <select id="selectByOperationType" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log WHERE operation_type = #{operationType} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据时间范围查询 -->
+    <select id="selectByTimeRange" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log 
+        WHERE create_time BETWEEN #{startTime} AND #{endTime} 
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 查询所有日志（分页） -->
+    <select id="selectAll" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据条件查询日志 -->
+    <select id="selectByConditions" resultMap="OperationLogResultMap">
+        SELECT * FROM operation_log 
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="startTime != null and endTime != null">
+                AND create_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 统计日志数量 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM operation_log
+    </select>
+
+    <!-- 根据条件统计 -->
+    <select id="countByConditions" resultType="int">
+        SELECT COUNT(*) FROM operation_log 
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="startTime != null and endTime != null">
+                AND create_time BETWEEN #{startTime} AND #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 删除指定时间之前的日志 -->
+    <delete id="deleteBeforeTime">
+        DELETE FROM operation_log WHERE create_time &lt; #{time}
+    </delete>
+
+</mapper> 

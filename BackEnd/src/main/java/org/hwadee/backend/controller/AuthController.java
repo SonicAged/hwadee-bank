@@ -3,11 +3,14 @@ package org.hwadee.backend.controller;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.service.SysUserService;
+import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 认证控制器
@@ -21,6 +24,9 @@ public class AuthController {
     @Autowired
     private SysUserService userService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     /**
      * 用户登录
      */
@@ -33,6 +39,33 @@ public class AuthController {
             return result;
         } catch (Exception e) {
             logger.error("登录过程中发生异常", e);
+            return Result.error("服务器内部错误: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前用户信息
+     */
+    @GetMapping("/userinfo")
+    public Result<SysUser> getCurrentUserInfo(HttpServletRequest request) {
+        try {
+            // 从请求头中获取token
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return Result.error("未提供有效的认证令牌");
+            }
+
+            String token = authHeader.substring(7); // 移除 "Bearer " 前缀
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            if (userId == null) {
+                return Result.error("无效的认证令牌");
+            }
+
+            logger.info("获取用户信息，用户ID: {}", userId);
+            return userService.getUserById(userId);
+        } catch (Exception e) {
+            logger.error("获取用户信息时发生异常", e);
             return Result.error("服务器内部错误: " + e.getMessage());
         }
     }

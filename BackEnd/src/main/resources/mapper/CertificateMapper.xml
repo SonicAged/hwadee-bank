@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.CertificateMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CertificateResultMap" type="org.hwadee.backend.entity.Certificate">
+        <id property="certificateId" column="certificate_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="certificateName" column="certificate_name"/>
+        <result property="certificateType" column="certificate_type"/>
+        <result property="issuingAuthority" column="issuing_authority"/>
+        <result property="certificateNumber" column="certificate_number"/>
+        <result property="issueDate" column="issue_date"/>
+        <result property="validityPeriod" column="validity_period"/>
+        <result property="description" column="description"/>
+        <result property="creditValue" column="credit_value"/>
+        <result property="certificateUrl" column="certificate_url"/>
+        <result property="status" column="status"/>
+        <result property="verificationStatus" column="verification_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 插入证书 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.Certificate" useGeneratedKeys="true" keyProperty="certificateId">
+        INSERT INTO certificate (
+            user_id, certificate_name, certificate_type, issuing_authority, 
+            certificate_number, issue_date, validity_period, description, 
+            credit_value, certificate_url, status, verification_status, 
+            create_time, update_time
+        ) VALUES (
+            #{userId}, #{certificateName}, #{certificateType}, #{issuingAuthority},
+            #{certificateNumber}, #{issueDate}, #{validityPeriod}, #{description},
+            #{creditValue}, #{certificateUrl}, #{status}, #{verificationStatus},
+            #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="CertificateResultMap">
+        SELECT * FROM certificate WHERE certificate_id = #{certificateId}
+    </select>
+
+    <!-- 根据证书编号查询 -->
+    <select id="selectByCertificateNumber" parameterType="string" resultMap="CertificateResultMap">
+        SELECT * FROM certificate WHERE certificate_number = #{certificateNumber}
+    </select>
+
+    <!-- 根据用户ID查询证书 -->
+    <select id="selectByUserId" resultMap="CertificateResultMap">
+        SELECT * FROM certificate WHERE user_id = #{userId} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据类型查询证书 -->
+    <select id="selectByType" resultMap="CertificateResultMap">
+        SELECT * FROM certificate WHERE certificate_type = #{certificateType} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 查询所有证书（分页） -->
+    <select id="selectAll" resultMap="CertificateResultMap">
+        SELECT * FROM certificate ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据验证状态查询 -->
+    <select id="selectByVerificationStatus" resultMap="CertificateResultMap">
+        SELECT * FROM certificate WHERE verification_status = #{verificationStatus} ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 更新证书信息 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.Certificate">
+        UPDATE certificate 
+        SET certificate_name = #{certificateName}, certificate_type = #{certificateType}, 
+            issuing_authority = #{issuingAuthority}, certificate_number = #{certificateNumber},
+            issue_date = #{issueDate}, validity_period = #{validityPeriod},
+            description = #{description}, credit_value = #{creditValue},
+            certificate_url = #{certificateUrl}, status = #{status},
+            verification_status = #{verificationStatus}, update_time = #{updateTime}
+        WHERE certificate_id = #{certificateId}
+    </update>
+
+    <!-- 更新验证状态 -->
+    <update id="updateVerificationStatus">
+        UPDATE certificate 
+        SET verification_status = #{verificationStatus}, update_time = NOW()
+        WHERE certificate_id = #{certificateId}
+    </update>
+
+    <!-- 删除证书 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM certificate WHERE certificate_id = #{certificateId}
+    </delete>
+
+    <!-- 统计证书数量 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM certificate
+    </select>
+
+    <!-- 根据用户统计 -->
+    <select id="countByUserId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM certificate WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据类型统计 -->
+    <select id="countByType" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM certificate WHERE certificate_type = #{certificateType}
+    </select>
+
+    <!-- 根据验证状态统计 -->
+    <select id="countByVerificationStatus" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM certificate WHERE verification_status = #{verificationStatus}
+    </select>
+
+</mapper> 

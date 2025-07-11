@@ -40,7 +40,7 @@ public interface CreditApplicationMapper {
     /**
      * 更新申请状态
      */
-    int updateStatus(@Param("applicationId") Long applicationId, @Param("status") Integer status, @Param("reviewComment") String reviewComment);
+    int updateStatus(@Param("applicationId") Long applicationId, @Param("status") Integer status, @Param("rejectionReason") String rejectionReason);
 
     /**
      * 更新申请信息
@@ -61,4 +61,19 @@ public interface CreditApplicationMapper {
      * 根据条件统计
      */
     int countByStatus(@Param("status") Integer status);
+
+    /**
+     * 统计用户申请数量
+     */
+    int countByUserId(@Param("userId") Long userId);
+
+    /**
+     * 统计用户特定状态的申请数量
+     */
+    int countByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
+
+    /**
+     * 根据条件搜索申请列表
+     */
+    List<CreditApplication> searchByCondition(@Param("userId") Long userId, @Param("applicationType") String applicationType, @Param("achievementName") String achievementName, @Param("status") Integer status, @Param("offset") int offset, @Param("limit") int limit);
 } 

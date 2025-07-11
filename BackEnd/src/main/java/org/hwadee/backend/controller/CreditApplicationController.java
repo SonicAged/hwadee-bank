@@ -97,6 +97,25 @@ public class CreditApplicationController {
     }
 
     /**
+     * 根据条件搜索申请列表
+     */
+    @GetMapping("/search")
+    public Result<List<CreditApplication>> searchApplications(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) String applicationType,
+            @RequestParam(required = false) String achievementName,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            return applicationService.searchApplications(userId, applicationType, achievementName, status, page, size);
+        } catch (Exception e) {
+            logger.error("搜索申请列表时发生异常", e);
+            return Result.error("服务器内部错误");
+        }
+    }
+
+    /**
      * 审核申请
      */
     @PostMapping("/review")

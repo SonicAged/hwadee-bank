@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.LearningResourceMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="LearningResourceResultMap" type="org.hwadee.backend.entity.LearningResource">
+        <id property="resourceId" column="resource_id"/>
+        <result property="resourceName" column="resource_name"/>
+        <result property="resourceType" column="resource_type"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="description" column="description"/>
+        <result property="contentUrl" column="content_url"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="duration" column="duration"/>
+        <result property="difficultyLevel" column="difficulty_level"/>
+        <result property="creditValue" column="credit_value"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="downloadCount" column="download_count"/>
+        <result property="rating" column="rating"/>
+        <result property="ratingCount" column="rating_count"/>
+        <result property="uploaderId" column="uploader_id"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 插入学习资源 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.LearningResource" useGeneratedKeys="true" keyProperty="resourceId">
+        INSERT INTO learning_resource (
+            resource_name, resource_type, category_id, description, content_url, 
+            thumbnail_url, file_size, duration, difficulty_level, credit_value, 
+            view_count, download_count, rating, rating_count, uploader_id, 
+            status, create_time, update_time
+        ) VALUES (
+            #{resourceName}, #{resourceType}, #{categoryId}, #{description}, #{contentUrl},
+            #{thumbnailUrl}, #{fileSize}, #{duration}, #{difficultyLevel}, #{creditValue},
+            #{viewCount}, #{downloadCount}, #{rating}, #{ratingCount}, #{uploaderId},
+            #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="LearningResourceResultMap">
+        SELECT * FROM learning_resource WHERE resource_id = #{resourceId}
+    </select>
+
+    <!-- 根据分类查询资源 -->
+    <select id="selectByCategory" resultMap="LearningResourceResultMap">
+        SELECT * FROM learning_resource WHERE category_id = #{categoryId} AND status = 1 ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据类型查询资源 -->
+    <select id="selectByType" resultMap="LearningResourceResultMap">
+        SELECT * FROM learning_resource WHERE resource_type = #{resourceType} AND status = 1 ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 查询所有资源（分页） -->
+    <select id="selectAll" resultMap="LearningResourceResultMap">
+        SELECT * FROM learning_resource WHERE status = 1 ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 根据关键词搜索资源 -->
+    <select id="searchByKeyword" resultMap="LearningResourceResultMap">
+        SELECT * FROM learning_resource 
+        WHERE status = 1 AND (resource_name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <!-- 更新资源信息 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.LearningResource">
+        UPDATE learning_resource 
+        SET resource_name = #{resourceName}, resource_type = #{resourceType}, 
+            category_id = #{categoryId}, description = #{description}, 
+            content_url = #{contentUrl}, thumbnail_url = #{thumbnailUrl},
+            file_size = #{fileSize}, duration = #{duration}, 
+            difficulty_level = #{difficultyLevel}, credit_value = #{creditValue},
+            status = #{status}, update_time = #{updateTime}
+        WHERE resource_id = #{resourceId}
+    </update>
+
+    <!-- 更新浏览次数 -->
+    <update id="updateViewCount" parameterType="long">
+        UPDATE learning_resource SET view_count = view_count + 1 WHERE resource_id = #{resourceId}
+    </update>
+
+    <!-- 更新下载次数 -->
+    <update id="updateDownloadCount" parameterType="long">
+        UPDATE learning_resource SET download_count = download_count + 1 WHERE resource_id = #{resourceId}
+    </update>
+
+    <!-- 删除资源 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM learning_resource WHERE resource_id = #{resourceId}
+    </delete>
+
+    <!-- 统计资源数量 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM learning_resource WHERE status = 1
+    </select>
+
+    <!-- 根据分类统计 -->
+    <select id="countByCategory" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM learning_resource WHERE category_id = #{categoryId} AND status = 1
+    </select>
+
+</mapper> 
