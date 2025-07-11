@@ -55,21 +55,27 @@ export const useAuthStore = defineStore('auth', () => {
   // 获取用户信息
   const getUserInfo = async () => {
     try {
-      // 这里需要先从token中解析用户ID，或者后端提供获取当前用户信息的接口
-      // 临时使用固定ID，实际应该从JWT token中获取
-      const userId = 1 // 从token中解析
+      // 调用后端接口获取当前用户信息
+      const userInfo: any = await request.get('/auth/userinfo')
+      user.value = userInfo as User
       
-      const [userInfo, userPermissions, userRoles] = await Promise.all([
-        request.get(`/user/${userId}`),
-        request.get(`/user/${userId}/permissions`),
-        request.get(`/user/${userId}/roles`)
-      ])
+      // TODO: 后续可以添加获取用户权限和角色的接口
+      // const [userPermissions, userRoles] = await Promise.all([
+      //   request.get('/auth/permissions'),
+      //   request.get('/auth/roles')
+      // ])
+      // permissions.value = userPermissions as string[]
+      // roles.value = userRoles as string[]
       
-      user.value = (userInfo as unknown) as User
-      permissions.value = (userPermissions as unknown) as string[]
-      roles.value = (userRoles as unknown) as string[]
+      // 临时设置一些默认权限
+      permissions.value = ['system', 'credit:account', 'credit:record', 'credit:application', 'resource:library', 'resource:category', 'course:list', 'course:training', 'audit:operation', 'audit:system']
+      roles.value = ['user']
+      
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      // 如果获取用户信息失败，清除token并跳转到登录页
+      logout()
+      window.location.href = '/login'
     }
   }
 

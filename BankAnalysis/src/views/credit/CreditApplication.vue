@@ -13,14 +13,21 @@
         <el-form :model="filterForm" :inline="true">
           <el-form-item label="申请状态">
             <el-select v-model="filterForm.status" placeholder="请选择状态" clearable @change="handleSearch">
-              <el-option label="待审核" :value="0" />
-              <el-option label="已通过" :value="1" />
-              <el-option label="已拒绝" :value="2" />
+              <el-option label="待审核" :value="1" />
+              <el-option label="已通过" :value="3" />
+              <el-option label="已拒绝" :value="4" />
             </el-select>
           </el-form-item>
-          <el-form-item label="学分类型">
-            <el-input v-model="filterForm.creditType" placeholder="请输入学分类型" clearable @change="handleSearch" />
-          </el-form-item>
+          <el-col :span="6">
+            <el-form-item label="申请类型">
+              <el-input v-model="filterForm.applicationType" placeholder="请输入申请类型" clearable @change="handleSearch" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item label="成果名称">
+              <el-input v-model="filterForm.achievementName" placeholder="请输入成果名称" clearable @change="handleSearch" />
+            </el-form-item>
+          </el-col>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">查询</el-button>
             <el-button @click="handleReset">重置</el-button>
@@ -31,11 +38,11 @@
       <!-- 申请列表 -->
       <el-table :data="applicationList" v-loading="loading" border stripe>
         <el-table-column prop="applicationId" label="申请ID" width="100" />
-        <el-table-column prop="creditType" label="学分类型" width="120" />
-        <el-table-column prop="creditSource" label="学分来源" min-width="150" />
-        <el-table-column prop="creditAmount" label="学分数量" width="100">
+        <el-table-column prop="applicationType" label="申请类型" width="120" />
+        <el-table-column prop="achievementName" label="成果名称" min-width="150" />
+        <el-table-column prop="appliedCredits" label="申请学分" width="100">
           <template #default="{ row }">
-            <el-tag type="success">{{ row.creditAmount }}</el-tag>
+            <el-tag type="success">{{ row.appliedCredits }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
@@ -45,14 +52,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="申请时间" width="180" />
-        <el-table-column prop="reviewComment" label="审核意见" min-width="150" />
+        <el-table-column prop="applyTime" label="申请时间" width="180" />
+        <el-table-column prop="rejectionReason" label="拒绝原因" min-width="150" />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="viewApplication(row)">查看</el-button>
-            <el-button v-if="row.status === 0" type="warning" link @click="editApplication(row)">编辑</el-button>
-            <el-button v-if="row.status === 0" type="success" link @click="reviewApplication(row, 1)">通过</el-button>
-            <el-button v-if="row.status === 0" type="danger" link @click="reviewApplication(row, 2)">拒绝</el-button>
+            <el-button v-if="row.status === 1" type="warning" link @click="editApplication(row)">编辑</el-button>
+            <el-button v-if="row.status === 1" type="success" link @click="reviewApplication(row, 3)">通过</el-button>
+            <el-button v-if="row.status === 1" type="danger" link @click="reviewApplication(row, 4)">拒绝</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -84,8 +91,8 @@
         :rules="submitRules"
         label-width="100px"
       >
-        <el-form-item label="学分类型" prop="creditType">
-          <el-select v-model="submitForm.creditType" placeholder="请选择学分类型">
+        <el-form-item label="申请类型" prop="creditType">
+          <el-select v-model="submitForm.creditType" placeholder="请选择申请类型">
             <el-option label="学历教育" value="学历教育" />
             <el-option label="职业培训" value="职业培训" />
             <el-option label="技能证书" value="技能证书" />
@@ -93,22 +100,22 @@
             <el-option label="其他" value="其他" />
           </el-select>
         </el-form-item>
-        <el-form-item label="学分来源" prop="creditSource">
-          <el-input v-model="submitForm.creditSource" placeholder="请输入学分来源" />
+        <el-form-item label="成果名称" prop="creditSource">
+          <el-input v-model="submitForm.creditSource" placeholder="请输入成果名称" />
         </el-form-item>
-        <el-form-item label="学分数量" prop="creditAmount">
+        <el-form-item label="申请学分" prop="creditAmount">
           <el-input-number v-model="submitForm.creditAmount" :min="0.1" :step="0.1" :precision="1" />
         </el-form-item>
-        <el-form-item label="申请说明" prop="description">
+        <el-form-item label="成果描述" prop="description">
           <el-input
             v-model="submitForm.description"
             type="textarea"
             :rows="4"
-            placeholder="请输入申请说明"
+            placeholder="请输入成果描述"
           />
         </el-form-item>
         <el-form-item label="证明材料" prop="evidenceUrl">
-          <el-input v-model="submitForm.evidenceUrl" placeholder="请输入证明材料URL" />
+          <el-input v-model="submitForm.evidenceUrl" placeholder="请输入证明材料文件路径或URL" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -154,6 +161,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import request from '../../utils/request'
+import { useAuthStore } from '../../stores/auth'
 
 // 响应式数据
 const loading = ref(false)
@@ -169,10 +177,16 @@ const showReviewDialog = ref(false)
 
 const submitFormRef = ref<FormInstance>()
 
+// 获取当前用户信息
+const authStore = useAuthStore()
+const currentUser = authStore.user
+
 // 筛选表单
 const filterForm = reactive({
   status: undefined,
-  creditType: ''
+  creditType: '',
+  applicationType: '',
+  achievementName: ''
 })
 
 // 提交表单
@@ -194,16 +208,16 @@ const reviewForm = reactive({
 // 表单验证规则
 const submitRules: FormRules = {
   creditType: [
-    { required: true, message: '请选择学分类型', trigger: 'change' }
+    { required: true, message: '请选择申请类型', trigger: 'change' }
   ],
   creditSource: [
-    { required: true, message: '请输入学分来源', trigger: 'blur' }
+    { required: true, message: '请输入成果名称', trigger: 'blur' }
   ],
   creditAmount: [
-    { required: true, message: '请输入学分数量', trigger: 'blur' }
+    { required: true, message: '请输入申请学分', trigger: 'blur' }
   ],
   description: [
-    { required: true, message: '请输入申请说明', trigger: 'blur' }
+    { required: true, message: '请输入成果描述', trigger: 'blur' }
   ]
 }
 
@@ -211,13 +225,45 @@ const submitRules: FormRules = {
 const getApplicationList = async () => {
   loading.value = true
   try {
-    const response: any = await request.get('/credit/application/all', {
-      params: {
-        page: currentPage.value,
-        size: pageSize.value,
-        ...filterForm
+    if (!currentUser?.userId) {
+      ElMessage.warning('请先登录')
+      return
+    }
+
+    // 检查是否有筛选条件
+    const hasFilters = filterForm.status !== undefined || 
+                      filterForm.applicationType || 
+                      filterForm.achievementName
+
+    let url = ''
+    let params: any = {
+      page: currentPage.value,
+      size: pageSize.value
+    }
+
+    // 根据用户角色和筛选条件决定调用哪个接口
+    const isAdmin = authStore.hasRole('ROLE_ADMIN') || authStore.hasRole('ROLE_AUDITOR')
+    
+    if (hasFilters) {
+      // 有筛选条件时使用搜索接口
+      url = '/credit/application/search'
+      params = {
+        ...params,
+        userId: isAdmin ? undefined : currentUser.userId, // 管理员可以搜索所有用户，普通用户只搜索自己的
+        applicationType: filterForm.applicationType || undefined,
+        achievementName: filterForm.achievementName || undefined,
+        status: filterForm.status
       }
-    })
+    } else {
+      // 无筛选条件时使用原接口
+      if (isAdmin) {
+        url = '/credit/application/all'
+      } else {
+        url = `/credit/application/user/${currentUser.userId}`
+      }
+    }
+
+    const response: any = await request.get(url, { params })
     applicationList.value = response || []
     // total.value = response.total || 0 // 如果后端返回总数
   } catch (error) {
@@ -230,9 +276,11 @@ const getApplicationList = async () => {
 // 状态文本
 const getStatusText = (status: number) => {
   switch (status) {
-    case 0: return '待审核'
-    case 1: return '已通过'
-    case 2: return '已拒绝'
+    case 1: return '待审核'
+    case 2: return '审核中'
+    case 3: return '已通过'
+    case 4: return '已拒绝'
+    case 5: return '已撤回'
     default: return '未知'
   }
 }
@@ -240,9 +288,11 @@ const getStatusText = (status: number) => {
 // 状态类型
 const getStatusType = (status: number) => {
   switch (status) {
-    case 0: return 'warning'
-    case 1: return 'success'
-    case 2: return 'danger'
+    case 1: return 'warning'  // 待审核
+    case 2: return 'info'     // 审核中
+    case 3: return 'success'  // 已通过
+    case 4: return 'danger'   // 已拒绝
+    case 5: return ''         // 已撤回
     default: return 'info'
   }
 }
@@ -254,7 +304,28 @@ const viewApplication = (row: any) => {
 
 // 编辑申请
 const editApplication = (row: any) => {
-  Object.assign(submitForm, row)
+  // 将后端数据映射到前端表单字段
+  let evidenceUrl = ''
+  if (row.evidenceFiles) {
+    try {
+      // 尝试解析 JSON 格式的证明材料
+      const evidenceArray = JSON.parse(row.evidenceFiles)
+      if (Array.isArray(evidenceArray) && evidenceArray.length > 0) {
+        evidenceUrl = evidenceArray[0] // 取第一个文件路径
+      }
+    } catch (e) {
+      // 如果不是 JSON 格式，直接使用原值
+      evidenceUrl = row.evidenceFiles
+    }
+  }
+  
+  Object.assign(submitForm, {
+    creditType: row.applicationType || '',
+    creditSource: row.achievementName || '',
+    creditAmount: row.appliedCredits || 1.0,
+    description: row.achievementDescription || '',
+    evidenceUrl: evidenceUrl
+  })
   showSubmitDialog.value = true
 }
 
@@ -274,10 +345,23 @@ const handleSubmit = async () => {
     if (valid) {
       submitting.value = true
       try {
-        await request.post('/credit/application/submit', {
-          ...submitForm,
-          userId: 1 // 当前用户ID，实际应从store获取
-        })
+        // 检查用户是否登录
+        if (!currentUser?.userId) {
+          ElMessage.warning('请先登录')
+          return
+        }
+
+        // 映射前端字段到后端期望的字段
+        const applicationData = {
+          userId: currentUser.userId, // 当前用户ID
+          applicationType: submitForm.creditType,        // 申请类型
+          achievementName: submitForm.creditSource,      // 成果名称
+          achievementDescription: submitForm.description, // 成果描述
+          appliedCredits: submitForm.creditAmount,       // 申请学分
+          evidenceFiles: submitForm.evidenceUrl || null  // 证明材料文件，后端会处理JSON转换
+        }
+        
+        await request.post('/credit/application/submit', applicationData)
         ElMessage.success('申请提交成功')
         showSubmitDialog.value = false
         getApplicationList()
@@ -294,11 +378,16 @@ const handleSubmit = async () => {
 const handleReview = async () => {
   reviewing.value = true
   try {
+    if (!currentUser?.userId) {
+      ElMessage.warning('请先登录')
+      return
+    }
+
     await request.post('/credit/application/review', {
       applicationId: reviewForm.applicationId,
       status: reviewForm.status,
       reviewComment: reviewForm.reviewComment,
-      reviewerId: 1 // 当前审核人ID
+      reviewerId: currentUser.userId // 当前审核人ID
     })
     ElMessage.success('审核完成')
     showReviewDialog.value = false
@@ -320,6 +409,8 @@ const handleSearch = () => {
 const handleReset = () => {
   filterForm.status = undefined
   filterForm.creditType = ''
+  filterForm.applicationType = ''
+  filterForm.achievementName = ''
   handleSearch()
 }
 
@@ -347,7 +438,17 @@ const handleCloseSubmitDialog = () => {
 }
 
 // 组件挂载时获取数据
-onMounted(() => {
+onMounted(async () => {
+  // 确保用户信息已加载
+  if (!authStore.user && authStore.token) {
+    try {
+      await authStore.getUserInfo()
+    } catch (error) {
+      ElMessage.error('获取用户信息失败，请重新登录')
+      return
+    }
+  }
+  
   getApplicationList()
 })
 </script>

@@ -4,59 +4,157 @@
       <template #header>
         <div class="card-header">
           <span>学分记录</span>
+          <el-button type="primary" icon="Refresh" @click="loadRecords">刷新</el-button>
         </div>
       </template>
       
-      <el-table :data="records" border stripe>
+      <!-- 筛选条件 -->
+      <div class="filter-bar">
+        <el-form :model="filterForm" :inline="true">
+          <el-form-item label="学分类型">
+            <el-select v-model="filterForm.creditType" placeholder="请选择类型" clearable @change="handleSearch">
+              <el-option label="学历教育" value="学历教育" />
+              <el-option label="职业培训" value="职业培训" />
+              <el-option label="技能证书" value="技能证书" />
+              <el-option label="在线课程" value="在线课程" />
+              <el-option label="学分获得" value="学分获得" />
+              <el-option label="学分消费" value="学分消费" />
+              <el-option label="学分转换" value="学分转换" />
+              <el-option label="系统操作" value="系统操作" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="操作类型">
+            <el-select v-model="filterForm.operationType" placeholder="请选择操作类型" clearable @change="handleSearch">
+              <el-option label="获得" :value="1" />
+              <el-option label="消费" :value="2" />
+              <el-option label="转换" :value="3" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="filterForm.status" placeholder="请选择状态" clearable @change="handleSearch">
+              <el-option label="无效" :value="0" />
+              <el-option label="有效" :value="1" />
+              <el-option label="待审核" :value="2" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+      
+      <!-- 记录列表 -->
+      <el-table :data="recordList" v-loading="loading" border stripe>
         <el-table-column prop="recordId" label="记录ID" width="100" />
         <el-table-column prop="creditType" label="学分类型" width="120" />
         <el-table-column prop="creditSource" label="学分来源" min-width="150" />
-        <el-table-column prop="creditAmount" label="学分数量" width="100" />
-        <el-table-column prop="operationType" label="操作类型" width="100">
+        <el-table-column prop="creditAmount" label="学分数量" width="120">
           <template #default="{ row }">
-            <el-tag :type="getOperationTypeColor(row.operationType)">
-              {{ getOperationTypeText(row.operationType) }}
+            <el-tag :type="getAmountType(row.operationType)" size="small">
+              {{ getAmountPrefix(row.operationType) }}{{ row.creditAmount }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="operationType" label="操作类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusColor(row.status)">
+            <el-tag :type="getOperationType(row.operationType)" size="small">
+              {{ getOperationText(row.operationType) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)" size="small">
               {{ getStatusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="createTime" label="记录时间" width="180" />
+        <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
       </el-table>
+      
+      <!-- 分页 -->
+      <div class="pagination">
+        <el-pagination
+          :current-page="currentPage"
+          :page-size="pageSize"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import request from '../../utils/request'
+import { useAuthStore } from '../../stores/auth'
 
-const records = ref([
-  {
-    recordId: 1,
-    creditType: '学历教育',
-    creditSource: 'Java高级编程课程',
-    creditAmount: 3.0,
-    operationType: 1,
-    status: 1,
-    createTime: '2024-01-15 10:00:00'
-  },
-  {
-    recordId: 2,
-    creditType: '职业培训',
-    creditSource: 'Spring Boot实战培训',
-    creditAmount: 1.5,
-    operationType: 1,
-    status: 1,
-    createTime: '2024-02-20 14:30:00'
+// 用户认证
+const authStore = useAuthStore()
+
+// 响应式数据
+const loading = ref(false)
+const recordList = ref([])
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 筛选表单
+const filterForm = reactive({
+  creditType: '',
+  operationType: undefined,
+  status: undefined
+})
+
+// 获取学分记录
+const loadRecords = async () => {
+  loading.value = true
+  try {
+    let url = '/credit/record/my'
+    let params: any = {
+      page: currentPage.value,
+      size: pageSize.value
+    }
+
+    // 如果有筛选条件，使用搜索接口
+    if (filterForm.creditType || filterForm.operationType !== undefined || filterForm.status !== undefined) {
+      url = '/credit/record/search'
+      params = {
+        ...params,
+        creditType: filterForm.creditType || undefined,
+        operationType: filterForm.operationType,
+        status: filterForm.status
+      }
+    }
+
+    const response: any = await request.get(url, { params })
+    recordList.value = response || []
+    
+    // 获取总数（如果需要的话）
+    if (currentPage.value === 1) {
+      try {
+        const countResult: any = await request.get('/credit/record/count')
+        total.value = countResult || 0
+      } catch (error) {
+        // 忽略获取总数失败的错误
+      }
+    }
+  } catch (error) {
+    ElMessage.error('获取学分记录失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
-const getOperationTypeText = (type: number) => {
+// 操作类型文本
+const getOperationText = (type: number) => {
   switch (type) {
     case 1: return '获得'
     case 2: return '消费'
@@ -65,7 +163,8 @@ const getOperationTypeText = (type: number) => {
   }
 }
 
-const getOperationTypeColor = (type: number) => {
+// 操作类型样式
+const getOperationType = (type: number) => {
   switch (type) {
     case 1: return 'success'
     case 2: return 'warning'
@@ -74,6 +173,7 @@ const getOperationTypeColor = (type: number) => {
   }
 }
 
+// 状态文本
 const getStatusText = (status: number) => {
   switch (status) {
     case 0: return '无效'
@@ -83,7 +183,8 @@ const getStatusText = (status: number) => {
   }
 }
 
-const getStatusColor = (status: number) => {
+// 状态样式
+const getStatusType = (status: number) => {
   switch (status) {
     case 0: return 'danger'
     case 1: return 'success'
@@ -91,6 +192,68 @@ const getStatusColor = (status: number) => {
     default: return ''
   }
 }
+
+// 学分数量样式
+const getAmountType = (operationType: number) => {
+  switch (operationType) {
+    case 1: return 'success'
+    case 2: return 'danger'
+    case 3: return 'warning'
+    default: return ''
+  }
+}
+
+// 学分数量前缀
+const getAmountPrefix = (operationType: number) => {
+  switch (operationType) {
+    case 1: return '+'
+    case 2: return '-'
+    case 3: return '±'
+    default: return ''
+  }
+}
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  loadRecords()
+}
+
+// 重置
+const handleReset = () => {
+  filterForm.creditType = ''
+  filterForm.operationType = undefined
+  filterForm.status = undefined
+  currentPage.value = 1
+  loadRecords()
+}
+
+// 分页
+const handleSizeChange = (val: number) => {
+  pageSize.value = val
+  currentPage.value = 1
+  loadRecords()
+}
+
+const handleCurrentChange = (val: number) => {
+  currentPage.value = val
+  loadRecords()
+}
+
+// 组件挂载时获取数据
+onMounted(async () => {
+  // 确保用户信息已加载
+  if (!authStore.user && authStore.token) {
+    try {
+      await authStore.getUserInfo()
+    } catch (error) {
+      ElMessage.error('获取用户信息失败，请重新登录')
+      return
+    }
+  }
+  
+  loadRecords()
+})
 </script>
 
 <style scoped>
@@ -100,8 +263,24 @@ const getStatusColor = (status: number) => {
 }
 
 .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-weight: 600;
   font-size: 16px;
+}
+
+.filter-bar {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .box-card {
