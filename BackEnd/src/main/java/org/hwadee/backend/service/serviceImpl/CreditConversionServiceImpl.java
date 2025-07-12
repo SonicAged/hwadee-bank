@@ -118,8 +118,6 @@ public class CreditConversionServiceImpl implements CreditConversionService {
             if (!accountResult.isSuccess()) {
                 return Result.error("用户学分账户不存在");
             }
-
-            org.hwadee.backend.entity.CreditAccount account = accountResult.getData();
             
             // 检查用户是否有足够的源学分类型学分
             // 这里简化处理，假设用户有足够的学分

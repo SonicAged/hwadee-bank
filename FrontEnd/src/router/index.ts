@@ -28,6 +28,29 @@ const router = createRouter({
           name: 'DashboardHome',
           component: () => import('../views/HomeView.vue')
         },
+        // 个人资料管理
+        {
+          path: 'profile',
+          name: 'UserProfile',
+          component: () => import('../views/profile/UserProfile.vue')
+        },
+        {
+          path: 'change-password',
+          name: 'ChangePassword',
+          component: () => import('../views/profile/ChangePassword.vue')
+        },
+        // API 测试页面
+        {
+          path: 'api-test',
+          name: 'ApiTest',
+          component: () => import('../views/test/ApiTest.vue')
+        },
+        // 个人资料测试页面
+        {
+          path: 'profile-test',
+          name: 'ProfileTest',
+          component: () => import('../views/test/ProfileTest.vue')
+        },
         // 用户管理
         {
           path: 'users',
