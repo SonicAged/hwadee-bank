@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import CourseList from '../views/course/CourseList.vue'
+import CourseDetail from '../views/course/CourseDetail.vue'
+import TrainingProgram from '../views/course/TrainingProgram.vue'
+import LearningProgress from '../views/course/LearningProgress.vue'
 
 const router = createRouter({
-  history: createWebHistory('/'),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -107,14 +111,26 @@ const router = createRouter({
             {
               path: 'list',
               name: 'CourseList',
-              component: () => import('../views/course/CourseList.vue'),
+              component: CourseList,
               meta: { permission: 'course:list' }
             },
             {
               path: 'training',
               name: 'TrainingProgram',
-              component: () => import('../views/course/TrainingProgram.vue'),
+              component: TrainingProgram,
               meta: { permission: 'course:training' }
+            },
+            {
+              path: 'detail/:id',
+              name: 'courseDetail',
+              component: CourseDetail,
+              meta: { title: '课程详情' }
+            },
+            {
+              path: 'progress',
+              name: 'learningProgress',
+              component: LearningProgress,
+              meta: { title: '学习进度' }
             }
           ]
         },
