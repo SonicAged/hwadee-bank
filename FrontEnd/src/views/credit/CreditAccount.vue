@@ -70,8 +70,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '../../utils/request'
 import { useAuthStore } from '../../stores/auth'
+import { creditApi, type CreditAccount } from '../../api/credit'
 
 // 用户认证
 const authStore = useAuthStore()
@@ -79,7 +79,7 @@ const currentUser = authStore.user
 
 // 响应式数据
 const loading = ref(false)
-const account = ref<any>(null)
+const account = ref<CreditAccount | null>(null)
 
 // 格式化日期时间
 const formatDateTime = (dateTime: string) => {
@@ -96,7 +96,7 @@ const loadAccountInfo = async () => {
 
   loading.value = true
   try {
-    const result: any = await request.get(`/credit/account/user/${currentUser.userId}`)
+    const result = await creditApi.account.getUserAccount(currentUser.userId)
     account.value = result
   } catch (error: any) {
     // 如果账户不存在，不显示错误信息
@@ -119,7 +119,7 @@ const createAccount = async () => {
 
   loading.value = true
   try {
-    await request.post(`/credit/account/create?userId=${currentUser.userId}`)
+    await creditApi.account.createAccount(currentUser.userId)
     ElMessage.success('学分账户创建成功')
     await loadAccountInfo()
   } catch (error) {

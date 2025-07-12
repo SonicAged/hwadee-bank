@@ -120,7 +120,7 @@
         <div class="header-right">
           <el-dropdown @command="handleUserCommand">
             <span class="user-dropdown">
-              <el-avatar :size="32" :src="user?.avatar">
+              <el-avatar :size="32" :src="getAvatarUrl(user?.avatar)">
                 {{ user?.realName?.charAt(0) }}
               </el-avatar>
               <span class="username">{{ user?.realName || user?.username }}</span>
@@ -174,6 +174,19 @@ const hasPermission = (permission: string) => {
   return authStore.hasPermission(permission)
 }
 
+// 获取头像完整URL
+const getAvatarUrl = (avatar?: string) => {
+  if (!avatar) return ''
+  
+  // 如果已经是完整URL，直接返回
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  
+  // 如果是相对路径，构造完整的头像URL
+  return `http://localhost:8080${avatar}`
+}
+
 // 切换侧边栏折叠状态
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
@@ -184,9 +197,11 @@ const handleUserCommand = async (command: string) => {
   switch (command) {
     case 'profile':
       // 跳转到个人资料页面
+      router.push('/dashboard/profile')
       break
     case 'password':
-      // 弹出修改密码对话框
+      // 跳转到修改密码页面
+      router.push('/dashboard/change-password')
       break
     case 'logout':
       try {

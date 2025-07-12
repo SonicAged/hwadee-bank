@@ -60,43 +60,51 @@
         UPDATE credit_record SET status = #{status} WHERE record_id = #{recordId}
     </update>
 
-    <!-- 根据条件查询学分记录 -->
+    <!-- 根据用户ID统计记录数 -->
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*) FROM credit_record WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据条件查询记录 -->
     <select id="selectByCondition" resultMap="CreditRecordResultMap">
         SELECT * FROM credit_record 
-        WHERE user_id = #{userId}
-        <if test="creditType != null and creditType != ''">
-            AND credit_type = #{creditType}
-        </if>
-        <if test="operationType != null">
-            AND operation_type = #{operationType}
-        </if>
-        <if test="status != null">
-            AND status = #{status}
-        </if>
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="creditType != null and creditType != ''">
+                AND credit_type = #{creditType}
+            </if>
+            <if test="operationType != null">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
         ORDER BY create_time DESC
         <if test="offset != null and limit != null">
             LIMIT #{offset}, #{limit}
         </if>
     </select>
 
-    <!-- 根据条件统计学分记录数量 -->
+    <!-- 根据条件统计记录数 -->
     <select id="countByCondition" resultType="long">
-        SELECT COUNT(*) FROM credit_record 
-        WHERE user_id = #{userId}
-        <if test="creditType != null and creditType != ''">
-            AND credit_type = #{creditType}
-        </if>
-        <if test="operationType != null">
-            AND operation_type = #{operationType}
-        </if>
-        <if test="status != null">
-            AND status = #{status}
-        </if>
-    </select>
-
-    <!-- 统计用户学分记录数量 -->
-    <select id="countByUserId" parameterType="long" resultType="long">
-        SELECT COUNT(*) FROM credit_record WHERE user_id = #{userId}
+        SELECT COUNT(*) FROM credit_record
+        <where>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="creditType != null and creditType != ''">
+                AND credit_type = #{creditType}
+            </if>
+            <if test="operationType != null">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
     </select>
 
     <!-- 统计所有记录数量 -->
@@ -106,7 +114,8 @@
 
     <!-- 根据用户ID和操作类型统计记录数量 -->
     <select id="countByUserIdAndOperationType" resultType="long">
-        SELECT COUNT(*) FROM credit_record WHERE user_id = #{userId} AND operation_type = #{operationType}
+        SELECT COUNT(*) FROM credit_record 
+        WHERE user_id = #{userId} AND operation_type = #{operationType}
     </select>
 
     <!-- 删除记录 -->

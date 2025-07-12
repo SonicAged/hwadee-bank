@@ -93,15 +93,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '../../utils/request'
 import { useAuthStore } from '../../stores/auth'
+import { creditApi, type CreditRecord } from '../../api/credit'
 
 // 用户认证
 const authStore = useAuthStore()
 
 // 响应式数据
 const loading = ref(false)
-const recordList = ref([])
+const recordList = ref<CreditRecord[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -117,32 +117,32 @@ const filterForm = reactive({
 const loadRecords = async () => {
   loading.value = true
   try {
-    let url = '/credit/record/my'
-    let params: any = {
+    const params = {
       page: currentPage.value,
-      size: pageSize.value
+      size: pageSize.value,
+      creditType: filterForm.creditType || undefined,
+      operationType: filterForm.operationType,
+      status: filterForm.status
     }
 
     // 如果有筛选条件，使用搜索接口
-    if (filterForm.creditType || filterForm.operationType !== undefined || filterForm.status !== undefined) {
-      url = '/credit/record/search'
-      params = {
-        ...params,
-        creditType: filterForm.creditType || undefined,
-        operationType: filterForm.operationType,
-        status: filterForm.status
-      }
-    }
+    const hasFilters = filterForm.creditType || 
+                      filterForm.operationType !== undefined || 
+                      filterForm.status !== undefined
 
-    const response: any = await request.get(url, { params })
-    recordList.value = response || []
-    
-    // 获取总数（如果需要的话）
+    const response = hasFilters
+      ? await creditApi.record.search(params)
+      : await creditApi.record.getMyRecords({ page: currentPage.value, size: pageSize.value })
+
+    recordList.value = response.list
+    total.value = response.total
+
+    // 如果是第一页，更新总数
     if (currentPage.value === 1) {
       try {
-        const countResult: any = await request.get('/credit/record/count')
-        total.value = countResult || 0
-      } catch (error) {
+        const count = await creditApi.record.getCount()
+        total.value = count
+      } catch {
         // 忽略获取总数失败的错误
       }
     }

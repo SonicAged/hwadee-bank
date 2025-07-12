@@ -2,6 +2,7 @@ package org.hwadee.backend.service.serviceImpl;
 
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
+import org.hwadee.backend.entity.UpdateProfileDTO;
 import org.hwadee.backend.mapper.SysUserMapper;
 import org.hwadee.backend.service.SysUserService;
 import org.hwadee.backend.service.CreditAccountService;
@@ -189,6 +190,50 @@ public class SysUserServiceImpl implements SysUserService {
             }
         } catch (Exception e) {
             return Result.error("更新失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public Result<String> updateProfile(Long userId, UpdateProfileDTO profileDTO) {
+        try {
+            if (userId == null) {
+                return Result.error("用户ID不能为空");
+            }
+
+            // 检查用户是否存在
+            SysUser existingUser = userMapper.selectByUserId(userId);
+            if (existingUser == null) {
+                return Result.error("用户不存在");
+            }
+
+            // 检查邮箱唯一性
+            if (profileDTO.getEmail() != null && !profileDTO.getEmail().trim().isEmpty()) {
+                SysUser emailUser = userMapper.selectByEmail(profileDTO.getEmail().trim());
+                if (emailUser != null && !emailUser.getUserId().equals(userId)) {
+                    return Result.error("邮箱已存在");
+                }
+            }
+
+            // 更新用户信息
+            SysUser user = new SysUser();
+            user.setUserId(userId);
+            user.setRealName(profileDTO.getRealName());
+            user.setEmail(profileDTO.getEmail());
+            user.setPhone(profileDTO.getPhone());
+            user.setAvatar(profileDTO.getAvatar());
+            user.setGender(profileDTO.getGender());
+            user.setBirthDate(profileDTO.getBirthDate());
+            user.setUpdateTime(LocalDateTime.now());
+
+            int result = userMapper.update(user);
+            if (result > 0) {
+                return Result.success("个人资料更新成功");
+            } else {
+                return Result.error("个人资料更新失败");
+            }
+        } catch (Exception e) {
+            return Result.error("个人资料更新失败：" + e.getMessage());
         }
     }
 

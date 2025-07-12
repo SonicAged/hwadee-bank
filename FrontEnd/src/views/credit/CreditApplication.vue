@@ -159,15 +159,18 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import request from '../../utils/request'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useAuthStore } from '../../stores/auth'
+import { creditApi, type CreditApplication } from '../../api/credit'
+
+// 用户认证
+const authStore = useAuthStore()
 
 // 响应式数据
 const loading = ref(false)
 const submitting = ref(false)
 const reviewing = ref(false)
-const applicationList = ref([])
+const applicationList = ref<CreditApplication[]>([])
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -178,7 +181,6 @@ const showReviewDialog = ref(false)
 const submitFormRef = ref<FormInstance>()
 
 // 获取当前用户信息
-const authStore = useAuthStore()
 const currentUser = authStore.user
 
 // 筛选表单
@@ -200,7 +202,7 @@ const submitForm = reactive({
 
 // 审核表单
 const reviewForm = reactive({
-  applicationId: null,
+  applicationId: null as number | null,
   status: 1,
   reviewComment: ''
 })
@@ -222,7 +224,7 @@ const submitRules: FormRules = {
 }
 
 // 获取申请列表
-const getApplicationList = async () => {
+const loadApplicationList = async () => {
   loading.value = true
   try {
     if (!currentUser?.userId) {
@@ -235,37 +237,20 @@ const getApplicationList = async () => {
                       filterForm.applicationType || 
                       filterForm.achievementName
 
-    let url = ''
-    let params: any = {
+    const params = {
       page: currentPage.value,
-      size: pageSize.value
+      size: pageSize.value,
+      status: filterForm.status,
+      applicationType: filterForm.applicationType || undefined,
+      achievementName: filterForm.achievementName || undefined
     }
 
-    // 根据用户角色和筛选条件决定调用哪个接口
-    const isAdmin = authStore.hasRole('ROLE_ADMIN') || authStore.hasRole('ROLE_AUDITOR')
-    
-    if (hasFilters) {
-      // 有筛选条件时使用搜索接口
-      url = '/credit/application/search'
-      params = {
-        ...params,
-        userId: isAdmin ? undefined : currentUser.userId, // 管理员可以搜索所有用户，普通用户只搜索自己的
-        applicationType: filterForm.applicationType || undefined,
-        achievementName: filterForm.achievementName || undefined,
-        status: filterForm.status
-      }
-    } else {
-      // 无筛选条件时使用原接口
-      if (isAdmin) {
-        url = '/credit/application/all'
-      } else {
-        url = `/credit/application/user/${currentUser.userId}`
-      }
-    }
+    const response = hasFilters
+      ? await creditApi.application.search(params)
+      : await creditApi.application.getList(params)
 
-    const response: any = await request.get(url, { params })
-    applicationList.value = response || []
-    // total.value = response.total || 0 // 如果后端返回总数
+    applicationList.value = response.list
+    total.value = response.total
   } catch (error) {
     ElMessage.error('获取申请列表失败')
   } finally {
@@ -298,12 +283,12 @@ const getStatusType = (status: number) => {
 }
 
 // 查看申请
-const viewApplication = (row: any) => {
+const viewApplication = (row: CreditApplication) => {
   ElMessage.info(`查看申请ID: ${row.applicationId}`)
 }
 
 // 编辑申请
-const editApplication = (row: any) => {
+const editApplication = (row: CreditApplication) => {
   // 将后端数据映射到前端表单字段
   let evidenceUrl = ''
   if (row.evidenceFiles) {
@@ -330,68 +315,71 @@ const editApplication = (row: any) => {
 }
 
 // 审核申请
-const reviewApplication = (row: any, status: number) => {
+const reviewApplication = (row: CreditApplication, status: number) => {
   reviewForm.applicationId = row.applicationId
   reviewForm.status = status
   reviewForm.reviewComment = ''
   showReviewDialog.value = true
 }
 
+// 重置提交表单
+const resetSubmitForm = () => {
+  Object.assign(submitForm, {
+    creditType: '',
+    creditSource: '',
+    creditAmount: 1.0,
+    description: '',
+    evidenceUrl: ''
+  })
+}
+
 // 提交申请
 const handleSubmit = async () => {
   if (!submitFormRef.value) return
-  
-  await submitFormRef.value.validate(async (valid) => {
-    if (valid) {
-      submitting.value = true
-      try {
-        // 检查用户是否登录
-        if (!currentUser?.userId) {
-          ElMessage.warning('请先登录')
-          return
-        }
 
-        // 映射前端字段到后端期望的字段
-        const applicationData = {
-          userId: currentUser.userId, // 当前用户ID
-          applicationType: submitForm.creditType,        // 申请类型
-          achievementName: submitForm.creditSource,      // 成果名称
-          achievementDescription: submitForm.description, // 成果描述
-          appliedCredits: submitForm.creditAmount,       // 申请学分
-          evidenceFiles: submitForm.evidenceUrl || null  // 证明材料文件，后端会处理JSON转换
-        }
-        
-        await request.post('/credit/application/submit', applicationData)
-        ElMessage.success('申请提交成功')
-        showSubmitDialog.value = false
-        getApplicationList()
-      } catch (error) {
-        ElMessage.error('申请提交失败')
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
+  try {
+    await submitFormRef.value.validate()
+    submitting.value = true
+
+    await creditApi.application.submit({
+      applicationType: submitForm.creditType,
+      achievementName: submitForm.creditSource,
+      achievementDescription: submitForm.description,
+      appliedCredits: submitForm.creditAmount,
+      evidenceFiles: submitForm.evidenceUrl,
+      creditType: submitForm.creditType,
+      creditSource: submitForm.creditSource,
+      creditAmount: submitForm.creditAmount,
+      description: submitForm.description,
+      evidenceUrl: submitForm.evidenceUrl
+    })
+
+    ElMessage.success('申请提交成功')
+    showSubmitDialog.value = false
+    resetSubmitForm()
+    loadApplicationList()
+  } catch (error) {
+    ElMessage.error('申请提交失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
 // 确认审核
 const handleReview = async () => {
+  if (!reviewForm.applicationId) return
+
   reviewing.value = true
   try {
-    if (!currentUser?.userId) {
-      ElMessage.warning('请先登录')
-      return
-    }
+    await creditApi.application.review(
+      reviewForm.applicationId,
+      reviewForm.status,
+      reviewForm.reviewComment
+    )
 
-    await request.post('/credit/application/review', {
-      applicationId: reviewForm.applicationId,
-      status: reviewForm.status,
-      reviewComment: reviewForm.reviewComment,
-      reviewerId: currentUser.userId // 当前审核人ID
-    })
     ElMessage.success('审核完成')
     showReviewDialog.value = false
-    getApplicationList()
+    loadApplicationList()
   } catch (error) {
     ElMessage.error('审核失败')
   } finally {
@@ -402,7 +390,7 @@ const handleReview = async () => {
 // 搜索
 const handleSearch = () => {
   currentPage.value = 1
-  getApplicationList()
+  loadApplicationList()
 }
 
 // 重置
@@ -417,23 +405,17 @@ const handleReset = () => {
 // 分页
 const handleSizeChange = (val: number) => {
   pageSize.value = val
-  getApplicationList()
+  loadApplicationList()
 }
 
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
-  getApplicationList()
+  loadApplicationList()
 }
 
 // 关闭提交对话框
 const handleCloseSubmitDialog = () => {
-  Object.assign(submitForm, {
-    creditType: '',
-    creditSource: '',
-    creditAmount: 1.0,
-    description: '',
-    evidenceUrl: ''
-  })
+  resetSubmitForm()
   showSubmitDialog.value = false
 }
 
@@ -449,7 +431,7 @@ onMounted(async () => {
     }
   }
   
-  getApplicationList()
+  loadApplicationList()
 })
 </script>
 

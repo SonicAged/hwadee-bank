@@ -61,6 +61,7 @@
     <update id="update" parameterType="org.hwadee.backend.entity.SysUser">
         UPDATE sys_user
         <set>
+            <if test="password != null and password != ''">password = #{password},</if>
             <if test="realName != null and realName != ''">real_name = #{realName},</if>
             <if test="email != null and email != ''">email = #{email},</if>
             <if test="phone != null and phone != ''">phone = #{phone},</if>

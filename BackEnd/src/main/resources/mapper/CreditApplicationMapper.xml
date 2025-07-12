@@ -118,4 +118,22 @@
         </if>
     </select>
 
+    <!-- 根据条件统计申请数量 -->
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(*) FROM credit_application 
+        WHERE 1=1
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+        <if test="applicationType != null and applicationType != ''">
+            AND application_type LIKE CONCAT('%', #{applicationType}, '%')
+        </if>
+        <if test="achievementName != null and achievementName != ''">
+            AND achievement_name LIKE CONCAT('%', #{achievementName}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
 </mapper> 

@@ -1,6 +1,7 @@
 package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.CreditApplication;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.service.CreditApplicationService;
 import org.hwadee.backend.utils.Result;
 import org.slf4j.Logger;
@@ -61,6 +62,24 @@ public class CreditApplicationController {
             return applicationService.getUserApplications(userId, page, size);
         } catch (Exception e) {
             logger.error("查询用户申请列表时发生异常", e);
+            return Result.error("服务器内部错误");
+        }
+    }
+
+    /**
+     * 获取申请列表
+     */
+    @GetMapping("/list")
+    public Result<PageResult<CreditApplication>> getApplicationList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String applicationType,
+            @RequestParam(required = false) String achievementName) {
+        try {
+            return applicationService.getApplicationListWithPaging(status, applicationType, achievementName, page, size);
+        } catch (Exception e) {
+            logger.error("查询申请列表时发生异常", e);
             return Result.error("服务器内部错误");
         }
     }

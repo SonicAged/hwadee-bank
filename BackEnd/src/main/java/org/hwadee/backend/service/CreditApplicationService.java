@@ -1,6 +1,7 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.CreditApplication;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.utils.Result;
 
 import java.util.List;
@@ -64,4 +65,10 @@ public interface CreditApplicationService {
      * 根据条件搜索申请列表
      */
     Result<List<CreditApplication>> searchApplications(Long userId, String applicationType, String achievementName, Integer status, int page, int size);
+
+    /**
+     * 分页查询申请列表
+     */
+    Result<PageResult<CreditApplication>> getApplicationListWithPaging(
+            Integer status, String applicationType, String achievementName, int page, int size);
 } 

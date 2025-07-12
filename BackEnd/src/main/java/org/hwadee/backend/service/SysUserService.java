@@ -2,6 +2,7 @@ package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
+import org.hwadee.backend.entity.UpdateProfileDTO;
 import org.hwadee.backend.utils.Result;
 
 import java.util.List;
@@ -35,6 +36,11 @@ public interface SysUserService {
      * 更新用户信息
      */
     Result<String> updateUser(SysUser user);
+
+    /**
+     * 更新用户个人资料
+     */
+    Result<String> updateProfile(Long userId, UpdateProfileDTO profileDTO);
 
     /**
      * 删除用户

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.ResourceReviewMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="ResourceReviewResultMap" type="org.hwadee.backend.entity.ResourceReview">
+        <id property="reviewId" column="review_id"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="rating" column="rating"/>
+        <result property="reviewContent" column="review_content"/>
+        <result property="helpfulCount" column="helpful_count"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="username" column="username"/>
+        <result property="realName" column="real_name"/>
+        <result property="resourceName" column="resource_name"/>
+    </resultMap>
+
+    <!-- 插入资源评价 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.ResourceReview" 
+            useGeneratedKeys="true" keyProperty="reviewId">
+        INSERT INTO resource_review (
+            resource_id, user_id, rating, review_content, helpful_count, 
+            status, create_time, update_time
+        ) VALUES (
+            #{resourceId}, #{userId}, #{rating}, #{reviewContent}, #{helpfulCount},
+            #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="ResourceReviewResultMap">
+        SELECT rr.*, u.username, u.real_name, lr.resource_name
+        FROM resource_review rr
+        LEFT JOIN sys_user u ON rr.user_id = u.user_id
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.review_id = #{reviewId}
+    </select>
+
+    <!-- 更新资源评价 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.ResourceReview">
+        UPDATE resource_review 
+        SET rating = #{rating}, review_content = #{reviewContent}, 
+            helpful_count = #{helpfulCount}, status = #{status},
+            update_time = #{updateTime}
+        WHERE review_id = #{reviewId}
+    </update>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM resource_review WHERE review_id = #{reviewId}
+    </delete>
+
+    <!-- 根据资源ID查询评价列表 -->
+    <select id="selectByResourceId" resultMap="ResourceReviewResultMap">
+        SELECT rr.*, u.username, u.real_name
+        FROM resource_review rr
+        LEFT JOIN sys_user u ON rr.user_id = u.user_id
+        WHERE rr.resource_id = #{resourceId} AND rr.status = 1
+        ORDER BY rr.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 根据用户ID查询评价列表 -->
+    <select id="selectByUserId" resultMap="ResourceReviewResultMap">
+        SELECT rr.*, lr.resource_name
+        FROM resource_review rr
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.user_id = #{userId} AND rr.status = 1
+        ORDER BY rr.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 检查用户是否已评价资源 -->
+    <select id="selectByUserAndResource" resultMap="ResourceReviewResultMap">
+        SELECT * FROM resource_review 
+        WHERE user_id = #{userId} AND resource_id = #{resourceId}
+    </select>
+
+    <!-- 统计资源评价数量 -->
+    <select id="countByResourceId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM resource_review 
+        WHERE resource_id = #{resourceId} AND status = 1
+    </select>
+
+    <!-- 计算资源平均评分 -->
+    <select id="calculateAverageRating" parameterType="long" resultType="java.lang.Double">
+        SELECT AVG(rating) FROM resource_review 
+        WHERE resource_id = #{resourceId} AND status = 1
+    </select>
+
+    <!-- 更新评价有用数 -->
+    <update id="updateHelpfulCount" parameterType="long">
+        UPDATE resource_review SET helpful_count = helpful_count + 1 
+        WHERE review_id = #{reviewId}
+    </update>
+
+    <!-- 根据评分查询评价 -->
+    <select id="selectByRating" resultMap="ResourceReviewResultMap">
+        SELECT rr.*, u.username, u.real_name
+        FROM resource_review rr
+        LEFT JOIN sys_user u ON rr.user_id = u.user_id
+        WHERE rr.resource_id = #{resourceId} AND rr.rating = #{rating} AND rr.status = 1
+        ORDER BY rr.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+</mapper> 

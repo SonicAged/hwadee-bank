@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import CourseList from '../views/course/CourseList.vue'
+import CourseDetail from '../views/course/CourseDetail.vue'
+import TrainingProgram from '../views/course/TrainingProgram.vue'
+import LearningProgress from '../views/course/LearningProgress.vue'
 
 const router = createRouter({
-  history: createWebHistory('/'),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
@@ -27,6 +31,29 @@ const router = createRouter({
           path: '',
           name: 'DashboardHome',
           component: () => import('../views/HomeView.vue')
+        },
+        // 个人资料管理
+        {
+          path: 'profile',
+          name: 'UserProfile',
+          component: () => import('../views/profile/UserProfile.vue')
+        },
+        {
+          path: 'change-password',
+          name: 'ChangePassword',
+          component: () => import('../views/profile/ChangePassword.vue')
+        },
+        // API 测试页面
+        {
+          path: 'api-test',
+          name: 'ApiTest',
+          component: () => import('../views/test/ApiTest.vue')
+        },
+        // 个人资料测试页面
+        {
+          path: 'profile-test',
+          name: 'ProfileTest',
+          component: () => import('../views/test/ProfileTest.vue')
         },
         // 用户管理
         {
@@ -84,14 +111,26 @@ const router = createRouter({
             {
               path: 'list',
               name: 'CourseList',
-              component: () => import('../views/course/CourseList.vue'),
+              component: CourseList,
               meta: { permission: 'course:list' }
             },
             {
               path: 'training',
               name: 'TrainingProgram',
-              component: () => import('../views/course/TrainingProgram.vue'),
+              component: TrainingProgram,
               meta: { permission: 'course:training' }
+            },
+            {
+              path: 'detail/:id',
+              name: 'courseDetail',
+              component: CourseDetail,
+              meta: { title: '课程详情' }
+            },
+            {
+              path: 'progress',
+              name: 'learningProgress',
+              component: LearningProgress,
+              meta: { title: '学习进度' }
             }
           ]
         },
@@ -119,14 +158,40 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('token')
   
+  // 检查是否需要登录
   if (to.meta.requiresAuth && !token) {
     next('/login')
-  } else {
-    next()
+    return
   }
+  
+  // 检查权限
+  if (to.meta.permission) {
+    // 动态导入 auth store 避免循环依赖
+    const { useAuthStore } = await import('../stores/auth')
+    const authStore = useAuthStore()
+    
+    // 如果用户信息还没有加载，尝试获取
+    if (!authStore.user && token) {
+      try {
+        await authStore.getUserInfo()
+      } catch (error) {
+        next('/login')
+        return
+      }
+    }
+    
+    // 检查用户是否有所需权限
+    if (!authStore.hasPermission(to.meta.permission as string)) {
+      // 权限不足，跳转到首页或显示错误页面
+      next('/dashboard')
+      return
+    }
+  }
+  
+  next()
 })
 
 export default router

@@ -78,6 +78,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { userApi } from '../../api/user'
 
 interface User {
   userId: number
@@ -116,12 +117,15 @@ const getGenderText = (gender: number) => {
 const handleSearch = async () => {
   loading.value = true
   try {
-    // 这里应该调用API获取用户列表
-    // const response = await getUserList(searchForm)
-    // userList.value = response.data
-    // total.value = response.total
+    // 调用API获取用户列表
+    const response = await userApi.getUserList(searchForm)
+    userList.value = response
+    total.value = response.length // 临时使用数组长度，实际应该从响应中获取总数
+  } catch (error) {
+    console.error('获取用户列表失败:', error)
+    ElMessage.error('获取用户列表失败')
     
-    // 模拟数据
+    // 如果API调用失败，显示模拟数据
     userList.value = [
       {
         userId: 1,
@@ -145,8 +149,6 @@ const handleSearch = async () => {
       }
     ]
     total.value = 50
-  } catch (error) {
-    ElMessage.error('获取用户列表失败')
   } finally {
     loading.value = false
   }

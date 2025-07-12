@@ -1,7 +1,6 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.CreditAccount;
-import org.hwadee.backend.entity.CreditApplication;
 import org.hwadee.backend.utils.Result;
 
 import java.math.BigDecimal;
