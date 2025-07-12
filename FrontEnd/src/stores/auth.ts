@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import request from '@/utils/request'
+import request from '../utils/request'
 
 export interface User {
   userId: number
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
       // roles.value = userRoles as string[]
       
       // 临时设置一些默认权限
-      permissions.value = ['system', 'credit:account', 'credit:record', 'credit:application', 'resource:library', 'resource:category', 'course:list', 'course:training', 'audit:operation', 'audit:system']
+      permissions.value = ['system', 'system:user', 'credit:account', 'credit:record', 'credit:application', 'resource:library', 'resource:category', 'course:list', 'course:training', 'audit:operation', 'audit:system']
       roles.value = ['user']
       
     } catch (error) {

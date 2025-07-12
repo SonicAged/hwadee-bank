@@ -36,6 +36,16 @@ public class LearningResource {
     private Long categoryId;
 
     /**
+     * 学科领域
+     */
+    private String subject;
+
+    /**
+     * 关键词，用逗号分隔
+     */
+    private String keywords;
+
+    /**
      * 资源描述
      */
     private String description;
@@ -81,6 +91,11 @@ public class LearningResource {
     private Integer downloadCount;
 
     /**
+     * 收藏次数
+     */
+    private Integer favoriteCount;
+
+    /**
      * 评分(0-5)
      */
     private BigDecimal rating;
@@ -94,6 +109,21 @@ public class LearningResource {
      * 上传者ID
      */
     private Long uploaderId;
+
+    /**
+     * 标签，用逗号分隔
+     */
+    private String tags;
+
+    /**
+     * 前置要求
+     */
+    private String prerequisites;
+
+    /**
+     * 学习目标
+     */
+    private String learningObjectives;
 
     /**
      * 状态：0-下架，1-上架，2-审核中

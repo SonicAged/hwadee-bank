@@ -1,6 +1,7 @@
 package org.hwadee.backend.service.serviceImpl;
 
 import org.hwadee.backend.entity.CreditApplication;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.mapper.CreditApplicationMapper;
 import org.hwadee.backend.service.CreditApplicationService;
 import org.hwadee.backend.service.CreditAccountService;
@@ -281,6 +282,28 @@ public class CreditApplicationServiceImpl implements CreditApplicationService {
             return Result.success(applications);
         } catch (Exception e) {
             return Result.error("搜索申请列表失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<PageResult<CreditApplication>> getApplicationListWithPaging(Integer status, String applicationType, String achievementName, int page, int size) {
+        try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+            int offset = (page - 1) * size;
+
+            // 查询申请列表
+            List<CreditApplication> applications = applicationMapper.searchByCondition(null, applicationType, achievementName, status, offset, size);
+            
+            // 查询总数
+            long total = applicationMapper.countByCondition(null, applicationType, achievementName, status);
+            
+            // 构造分页结果
+            PageResult<CreditApplication> pageResult = PageResult.of(applications, total, page, size);
+            
+            return Result.success(pageResult);
+        } catch (Exception e) {
+            return Result.error("查询申请列表失败：" + e.getMessage());
         }
     }
 } 

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.ResourceCategoryMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="ResourceCategoryResultMap" type="org.hwadee.backend.entity.ResourceCategory">
+        <id property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="categoryPath" column="category_path"/>
+        <result property="level" column="level"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="icon" column="icon"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="resourceCount" column="resource_count"/>
+    </resultMap>
+
+    <!-- 插入资源分类 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.ResourceCategory" 
+            useGeneratedKeys="true" keyProperty="categoryId">
+        INSERT INTO resource_category (
+            category_name, parent_id, category_path, level, sort_order, 
+            icon, description, status, create_time, update_time
+        ) VALUES (
+            #{categoryName}, #{parentId}, #{categoryPath}, #{level}, #{sortOrder},
+            #{icon}, #{description}, #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- 更新资源分类 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.ResourceCategory">
+        UPDATE resource_category 
+        SET category_name = #{categoryName}, parent_id = #{parentId}, 
+            category_path = #{categoryPath}, level = #{level}, sort_order = #{sortOrder},
+            icon = #{icon}, description = #{description}, status = #{status},
+            update_time = #{updateTime}
+        WHERE category_id = #{categoryId}
+    </update>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM resource_category WHERE category_id = #{categoryId}
+    </delete>
+
+    <!-- 查询所有资源分类 -->
+    <select id="selectAll" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <!-- 根据父级ID查询子分类 -->
+    <select id="selectByParentId" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category 
+        WHERE parent_id = #{parentId} AND status = 1
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <!-- 查询顶级分类 -->
+    <select id="selectTopLevel" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category 
+        WHERE parent_id = 0 AND status = 1
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <!-- 查询分类树结构 -->
+    <select id="selectTree" resultMap="ResourceCategoryResultMap">
+        SELECT c.*, COUNT(lr.resource_id) as resource_count
+        FROM resource_category c
+        LEFT JOIN learning_resource lr ON c.category_id = lr.category_id AND lr.status = 1
+        WHERE c.status = 1
+        GROUP BY c.category_id
+        ORDER BY c.sort_order ASC, c.category_id ASC
+    </select>
+
+    <!-- 根据分类名称查询 -->
+    <select id="selectByName" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category 
+        WHERE category_name LIKE CONCAT('%', #{categoryName}, '%')
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <!-- 根据状态查询分类 -->
+    <select id="selectByStatus" resultMap="ResourceCategoryResultMap">
+        SELECT * FROM resource_category 
+        WHERE status = #{status}
+        ORDER BY sort_order ASC, category_id ASC
+    </select>
+
+    <!-- 统计分类下的资源数量 -->
+    <select id="countResourcesByCategory" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM learning_resource 
+        WHERE category_id = #{categoryId} AND status = 1
+    </select>
+
+</mapper> 

@@ -180,15 +180,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import request from '../../utils/request'
 import { useAuthStore } from '../../stores/auth'
+import { creditApi, type CreditStatisticsOverview, type CreditTrendStatistics, type CreditDistributionStatistics } from '../../api/credit'
 
 // 用户认证
 const authStore = useAuthStore()
 
 // 响应式数据
 const loading = ref(false)
-const overview = reactive({
+const overview = reactive<CreditStatisticsOverview>({
   totalCredits: 0,
   availableCredits: 0,
   frozenCredits: 0,
@@ -199,13 +199,13 @@ const overview = reactive({
   rejectedApplications: 0
 })
 
-const trend = reactive({
+const trend = reactive<CreditTrendStatistics>({
   gainRecords: 0,
   consumeRecords: 0,
   convertRecords: 0
 })
 
-const distribution = reactive({
+const distribution = reactive<CreditDistributionStatistics>({
   typeDistribution: {}
 })
 
@@ -215,9 +215,9 @@ const loadStatistics = async () => {
   try {
     // 并行加载各种统计数据
     const [overviewRes, trendRes, distributionRes] = await Promise.all([
-      request.get('/credit/statistics/overview'),
-      request.get('/credit/statistics/trend'),
-      request.get('/credit/statistics/distribution')
+      creditApi.statistics.getOverview(),
+      creditApi.statistics.getTrend(),
+      creditApi.statistics.getDistribution()
     ])
 
     Object.assign(overview, overviewRes)

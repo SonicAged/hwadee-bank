@@ -125,8 +125,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import request from '../../utils/request'
 import { useAuthStore } from '../../stores/auth'
+import { creditApi, type CreditConversionRule } from '../../api/credit'
 
 // 用户认证
 const authStore = useAuthStore()
@@ -134,8 +134,8 @@ const authStore = useAuthStore()
 // 响应式数据
 const converting = ref(false)
 const rulesLoading = ref(false)
-const rules = ref<any[]>([])
-const currentRule = ref<any>(null)
+const rules = ref<CreditConversionRule[]>([])
+const currentRule = ref<CreditConversionRule | null>(null)
 const predictedCredits = ref(0)
 
 const conversionFormRef = ref<FormInstance>()
@@ -174,8 +174,8 @@ const canConvert = computed(() => {
 const loadRules = async () => {
   rulesLoading.value = true
   try {
-    const response: any = await request.get('/credit/conversion/rules')
-    rules.value = response || []
+    const response = await creditApi.conversion.getRules()
+    rules.value = response
   } catch (error) {
     ElMessage.error('获取转换规则失败')
   } finally {
@@ -199,12 +199,10 @@ const getRuleByTypes = async () => {
   }
 
   try {
-    const response: any = await request.get('/credit/conversion/rule', {
-      params: {
-        sourceType: conversionForm.sourceType,
-        targetType: conversionForm.targetType
-      }
-    })
+    const response = await creditApi.conversion.getRule(
+      conversionForm.sourceType,
+      conversionForm.targetType
+    )
     currentRule.value = response
     calculateConversion()
   } catch (error) {
@@ -222,14 +220,12 @@ const calculateConversion = async () => {
   }
 
   try {
-    const response: any = await request.get('/credit/conversion/calculate', {
-      params: {
-        sourceType: conversionForm.sourceType,
-        targetType: conversionForm.targetType,
-        sourceCredits: conversionForm.sourceCredits
-      }
+    const response = await creditApi.conversion.calculate({
+      sourceType: conversionForm.sourceType,
+      targetType: conversionForm.targetType,
+      sourceCredits: conversionForm.sourceCredits
     })
-    predictedCredits.value = response || 0
+    predictedCredits.value = response
   } catch (error: any) {
     predictedCredits.value = 0
     if (error.message) {
@@ -252,26 +248,24 @@ const onTargetTypeChange = () => {
 const handleConversion = async () => {
   if (!conversionFormRef.value) return
 
-  await conversionFormRef.value.validate(async (valid) => {
-    if (valid) {
-      converting.value = true
-      try {
-        await request.post('/credit/conversion/convert', null, {
-          params: {
-            sourceType: conversionForm.sourceType,
-            targetType: conversionForm.targetType,
-            sourceCredits: conversionForm.sourceCredits
-          }
-        })
-        ElMessage.success('学分转换成功')
-        resetForm()
-      } catch (error: any) {
-        ElMessage.error(error.message || '学分转换失败')
-      } finally {
-        converting.value = false
-      }
-    }
-  })
+  try {
+    await conversionFormRef.value.validate()
+    converting.value = true
+
+    await creditApi.conversion.convert({
+      sourceType: conversionForm.sourceType,
+      targetType: conversionForm.targetType,
+      sourceCredits: conversionForm.sourceCredits
+    })
+
+    ElMessage.success('转换成功')
+    resetForm()
+    loadRules()
+  } catch (error) {
+    ElMessage.error('转换失败')
+  } finally {
+    converting.value = false
+  }
 }
 
 // 重置表单

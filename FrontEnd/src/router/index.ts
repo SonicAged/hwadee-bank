@@ -142,14 +142,40 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const token = localStorage.getItem('token')
   
+  // 检查是否需要登录
   if (to.meta.requiresAuth && !token) {
     next('/login')
-  } else {
-    next()
+    return
   }
+  
+  // 检查权限
+  if (to.meta.permission) {
+    // 动态导入 auth store 避免循环依赖
+    const { useAuthStore } = await import('../stores/auth')
+    const authStore = useAuthStore()
+    
+    // 如果用户信息还没有加载，尝试获取
+    if (!authStore.user && token) {
+      try {
+        await authStore.getUserInfo()
+      } catch (error) {
+        next('/login')
+        return
+      }
+    }
+    
+    // 检查用户是否有所需权限
+    if (!authStore.hasPermission(to.meta.permission as string)) {
+      // 权限不足，跳转到首页或显示错误页面
+      next('/dashboard')
+      return
+    }
+  }
+  
+  next()
 })
 
 export default router

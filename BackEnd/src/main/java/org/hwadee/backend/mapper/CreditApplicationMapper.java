@@ -76,4 +76,9 @@ public interface CreditApplicationMapper {
      * 根据条件搜索申请列表
      */
     List<CreditApplication> searchByCondition(@Param("userId") Long userId, @Param("applicationType") String applicationType, @Param("achievementName") String achievementName, @Param("status") Integer status, @Param("offset") int offset, @Param("limit") int limit);
+
+    /**
+     * 根据条件统计申请数量
+     */
+    long countByCondition(@Param("userId") Long userId, @Param("applicationType") String applicationType, @Param("achievementName") String achievementName, @Param("status") Integer status);
 } 

@@ -30,10 +30,7 @@
             <div class="password-tips">
               <p>密码要求：</p>
               <ul>
-                <li>长度至少8个字符</li>
-                <li>包含至少一个数字</li>
-                <li>包含至少一个字母</li>
-                <li>建议包含特殊字符</li>
+                <li>包含至少一个数字，一个字母，建议包含特殊字符，长度至少8个字符</li>
               </ul>
             </div>
           </el-form-item>
@@ -65,7 +62,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { userApi, type ChangePasswordDTO } from '@/api/user'
+import { userApi, type ChangePasswordDTO } from '../../api/user'
 
 const router = useRouter()
 
@@ -80,7 +77,7 @@ const formData = reactive<ChangePasswordDTO>({
 })
 
 // 自定义验证规则
-const validatePassword = (rule: any, value: string, callback: any) => {
+const validatePassword = (_rule: any, value: string, callback: any) => {
   if (!value) {
     callback(new Error('请输入新密码'))
     return
@@ -104,7 +101,7 @@ const validatePassword = (rule: any, value: string, callback: any) => {
   callback()
 }
 
-const validateConfirmPassword = (rule: any, value: string, callback: any) => {
+const validateConfirmPassword = (_rule: any, value: string, callback: any) => {
   if (!value) {
     callback(new Error('请确认新密码'))
     return

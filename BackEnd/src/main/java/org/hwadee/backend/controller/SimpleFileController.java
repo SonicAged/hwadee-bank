@@ -17,7 +17,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/simple-file")
-@CrossOrigin(origins = "*")
 public class SimpleFileController {
 
     private static final Logger logger = LoggerFactory.getLogger(SimpleFileController.class);

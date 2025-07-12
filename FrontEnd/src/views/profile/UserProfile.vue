@@ -88,8 +88,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '@/stores/auth'
-import { userApi, type UserInfo, type UpdateProfileDTO } from '@/api/user'
+import { useAuthStore } from '../../stores/auth'
+import { userApi, type UserInfo, type UpdateProfileDTO } from '../../api/user'
 
 const authStore = useAuthStore()
 

@@ -18,19 +18,24 @@ public interface CreditRecordMapper {
     int insert(CreditRecord record);
 
     /**
-     * 根据用户ID查询学分记录
+     * 根据用户ID查询记录
      */
-    List<CreditRecord> selectByUserId(@Param("userId") Long userId, @Param("offset") int offset, @Param("limit") int limit);
+    List<CreditRecord> selectByUserId(@Param("userId") Long userId, @Param("offset") Integer offset, @Param("limit") Integer limit);
 
     /**
-     * 根据用户ID统计学分记录数量
+     * 查询所有记录
      */
-    long countByUserId(@Param("userId") Long userId);
+    List<CreditRecord> selectAll(@Param("offset") Integer offset, @Param("limit") Integer limit);
+
+    /**
+     * 根据类型查询记录
+     */
+    List<CreditRecord> selectByType(@Param("creditType") String creditType, @Param("offset") Integer offset, @Param("limit") Integer limit);
 
     /**
      * 根据记录ID查询学分记录
      */
-    CreditRecord selectByRecordId(@Param("recordId") Long recordId);
+    CreditRecord selectByRecordId(Long recordId);
 
     /**
      * 更新学分记录状态
@@ -38,14 +43,31 @@ public interface CreditRecordMapper {
     int updateStatus(@Param("recordId") Long recordId, @Param("status") Integer status);
 
     /**
-     * 根据条件查询学分记录
+     * 根据用户ID统计记录数
      */
-    List<CreditRecord> selectByCondition(@Param("userId") Long userId, @Param("creditType") String creditType, @Param("operationType") Integer operationType, @Param("status") Integer status, @Param("offset") int offset, @Param("limit") int limit);
+    long countByUserId(@Param("userId") Long userId);
 
     /**
-     * 根据条件统计学分记录数量
+     * 根据条件查询记录
      */
-    long countByCondition(@Param("userId") Long userId, @Param("creditType") String creditType, @Param("operationType") Integer operationType, @Param("status") Integer status);
+    List<CreditRecord> selectByCondition(
+        @Param("userId") Long userId,
+        @Param("creditType") String creditType,
+        @Param("operationType") Integer operationType,
+        @Param("status") Integer status,
+        @Param("offset") Integer offset,
+        @Param("limit") Integer limit
+    );
+
+    /**
+     * 根据条件统计记录数
+     */
+    long countByCondition(
+        @Param("userId") Long userId,
+        @Param("creditType") String creditType,
+        @Param("operationType") Integer operationType,
+        @Param("status") Integer status
+    );
 
     /**
      * 统计所有记录数量

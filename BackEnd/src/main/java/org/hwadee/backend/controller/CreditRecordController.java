@@ -1,6 +1,7 @@
 package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.CreditRecord;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.mapper.CreditRecordMapper;
 import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;
@@ -31,7 +32,7 @@ public class CreditRecordController {
      * 获取当前用户的学分记录
      */
     @GetMapping("/my")
-    public Result<List<CreditRecord>> getMyRecords(
+    public Result<PageResult<CreditRecord>> getMyRecords(
             HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -53,8 +54,14 @@ public class CreditRecordController {
             if (size < 1) size = 10;
             int offset = (page - 1) * size;
 
+            // 获取总数
+            long total = recordMapper.countByUserId(userId);
+            
+            // 获取分页数据
             List<CreditRecord> records = recordMapper.selectByUserId(userId, offset, size);
-            return Result.success(records);
+            
+            // 返回分页结果
+            return Result.success(PageResult.of(records, total, page, size));
         } catch (Exception e) {
             logger.error("查询学分记录时发生异常", e);
             return Result.error("服务器内部错误");
@@ -65,7 +72,7 @@ public class CreditRecordController {
      * 获取指定用户的学分记录（管理员功能）
      */
     @GetMapping("/user/{userId}")
-    public Result<List<CreditRecord>> getUserRecords(
+    public Result<PageResult<CreditRecord>> getUserRecords(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -74,8 +81,14 @@ public class CreditRecordController {
             if (size < 1) size = 10;
             int offset = (page - 1) * size;
 
+            // 获取总数
+            long total = recordMapper.countByUserId(userId);
+            
+            // 获取分页数据
             List<CreditRecord> records = recordMapper.selectByUserId(userId, offset, size);
-            return Result.success(records);
+            
+            // 返回分页结果
+            return Result.success(PageResult.of(records, total, page, size));
         } catch (Exception e) {
             logger.error("查询用户学分记录时发生异常", e);
             return Result.error("服务器内部错误");
@@ -86,7 +99,7 @@ public class CreditRecordController {
      * 根据条件查询学分记录
      */
     @GetMapping("/search")
-    public Result<List<CreditRecord>> searchRecords(
+    public Result<PageResult<CreditRecord>> searchRecords(
             HttpServletRequest request,
             @RequestParam(required = false) String creditType,
             @RequestParam(required = false) Integer operationType,
@@ -111,8 +124,14 @@ public class CreditRecordController {
             if (size < 1) size = 10;
             int offset = (page - 1) * size;
 
+            // 获取总数
+            long total = recordMapper.countByCondition(userId, creditType, operationType, status);
+            
+            // 获取分页数据
             List<CreditRecord> records = recordMapper.selectByCondition(userId, creditType, operationType, status, offset, size);
-            return Result.success(records);
+            
+            // 返回分页结果
+            return Result.success(PageResult.of(records, total, page, size));
         } catch (Exception e) {
             logger.error("搜索学分记录时发生异常", e);
             return Result.error("服务器内部错误");

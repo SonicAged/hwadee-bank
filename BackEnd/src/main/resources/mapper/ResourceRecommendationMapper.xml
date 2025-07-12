@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.ResourceRecommendationMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="ResourceRecommendationResultMap" type="org.hwadee.backend.entity.ResourceRecommendation">
+        <id property="recommendationId" column="recommendation_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="recommendationType" column="recommendation_type"/>
+        <result property="score" column="score"/>
+        <result property="reason" column="reason"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <association property="resource" javaType="org.hwadee.backend.entity.LearningResource">
+            <id property="resourceId" column="resource_id"/>
+            <result property="resourceName" column="resource_name"/>
+            <result property="resourceType" column="resource_type"/>
+            <result property="description" column="description"/>
+            <result property="thumbnailUrl" column="thumbnail_url"/>
+            <result property="difficultyLevel" column="difficulty_level"/>
+            <result property="creditValue" column="credit_value"/>
+            <result property="rating" column="rating"/>
+        </association>
+    </resultMap>
+
+    <!-- 插入资源推荐 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.ResourceRecommendation" 
+            useGeneratedKeys="true" keyProperty="recommendationId">
+        INSERT INTO resource_recommendation (
+            user_id, resource_id, recommendation_type, score, reason, 
+            status, create_time, update_time
+        ) VALUES (
+            #{userId}, #{resourceId}, #{recommendationType}, #{score}, #{reason},
+            #{status}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="ResourceRecommendationResultMap">
+        SELECT rr.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM resource_recommendation rr
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.recommendation_id = #{recommendationId}
+    </select>
+
+    <!-- 更新资源推荐 -->
+    <update id="update" parameterType="org.hwadee.backend.entity.ResourceRecommendation">
+        UPDATE resource_recommendation 
+        SET recommendation_type = #{recommendationType}, score = #{score}, 
+            reason = #{reason}, status = #{status}, update_time = #{updateTime}
+        WHERE recommendation_id = #{recommendationId}
+    </update>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM resource_recommendation WHERE recommendation_id = #{recommendationId}
+    </delete>
+
+    <!-- 根据用户ID查询推荐列表 -->
+    <select id="selectByUserId" resultMap="ResourceRecommendationResultMap">
+        SELECT rr.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM resource_recommendation rr
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.user_id = #{userId} AND rr.status = 1 AND lr.status = 1
+        ORDER BY rr.score DESC, rr.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 根据推荐类型查询推荐列表 -->
+    <select id="selectByType" resultMap="ResourceRecommendationResultMap">
+        SELECT rr.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM resource_recommendation rr
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.user_id = #{userId} AND rr.recommendation_type = #{recommendationType} 
+              AND rr.status = 1 AND lr.status = 1
+        ORDER BY rr.score DESC, rr.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 批量插入推荐 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO resource_recommendation (
+            user_id, resource_id, recommendation_type, score, reason, 
+            status, create_time, update_time
+        ) VALUES
+        <foreach collection="recommendations" item="item" separator=",">
+            (#{item.userId}, #{item.resourceId}, #{item.recommendationType}, 
+             #{item.score}, #{item.reason}, #{item.status}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <!-- 删除用户的所有推荐 -->
+    <delete id="deleteByUserId" parameterType="long">
+        DELETE FROM resource_recommendation WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 删除过期推荐 -->
+    <delete id="deleteExpiredRecommendations" parameterType="int">
+        DELETE FROM resource_recommendation 
+        WHERE create_time &lt; DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </delete>
+
+    <!-- 检查是否已推荐 -->
+    <select id="selectByUserAndResource" resultMap="ResourceRecommendationResultMap">
+        SELECT * FROM resource_recommendation 
+        WHERE user_id = #{userId} AND resource_id = #{resourceId} AND status = 1
+    </select>
+
+    <!-- 获取热门推荐 -->
+    <select id="selectPopularRecommendations" resultMap="ResourceRecommendationResultMap">
+        SELECT rr.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM resource_recommendation rr
+        LEFT JOIN learning_resource lr ON rr.resource_id = lr.resource_id
+        WHERE rr.status = 1 AND lr.status = 1
+        GROUP BY rr.resource_id
+        ORDER BY COUNT(*) DESC, AVG(rr.score) DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 更新推荐状态 -->
+    <update id="updateStatus">
+        UPDATE resource_recommendation 
+        SET status = #{status}, update_time = NOW()
+        WHERE recommendation_id = #{recommendationId}
+    </update>
+
+</mapper> 

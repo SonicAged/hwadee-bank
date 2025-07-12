@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.hwadee.backend.mapper.UserFavoriteMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="UserFavoriteResultMap" type="org.hwadee.backend.entity.UserFavorite">
+        <id property="favoriteId" column="favorite_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="resourceId" column="resource_id"/>
+        <result property="favoriteType" column="favorite_type"/>
+        <result property="createTime" column="create_time"/>
+        <association property="resource" javaType="org.hwadee.backend.entity.LearningResource">
+            <id property="resourceId" column="resource_id"/>
+            <result property="resourceName" column="resource_name"/>
+            <result property="resourceType" column="resource_type"/>
+            <result property="description" column="description"/>
+            <result property="thumbnailUrl" column="thumbnail_url"/>
+            <result property="difficultyLevel" column="difficulty_level"/>
+            <result property="creditValue" column="credit_value"/>
+            <result property="rating" column="rating"/>
+        </association>
+    </resultMap>
+
+    <!-- 插入用户收藏 -->
+    <insert id="insert" parameterType="org.hwadee.backend.entity.UserFavorite" 
+            useGeneratedKeys="true" keyProperty="favoriteId">
+        INSERT INTO user_favorite (
+            user_id, resource_id, favorite_type, create_time
+        ) VALUES (
+            #{userId}, #{resourceId}, #{favoriteType}, #{createTime}
+        )
+    </insert>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="UserFavoriteResultMap">
+        SELECT uf.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM user_favorite uf
+        LEFT JOIN learning_resource lr ON uf.resource_id = lr.resource_id
+        WHERE uf.favorite_id = #{favoriteId}
+    </select>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM user_favorite WHERE favorite_id = #{favoriteId}
+    </delete>
+
+    <!-- 根据用户和资源删除收藏 -->
+    <delete id="deleteByUserAndResource">
+        DELETE FROM user_favorite 
+        WHERE user_id = #{userId} AND resource_id = #{resourceId}
+    </delete>
+
+    <!-- 根据用户ID查询收藏列表 -->
+    <select id="selectByUserId" resultMap="UserFavoriteResultMap">
+        SELECT uf.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM user_favorite uf
+        LEFT JOIN learning_resource lr ON uf.resource_id = lr.resource_id
+        WHERE uf.user_id = #{userId} AND lr.status = 1
+        ORDER BY uf.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 检查用户是否已收藏资源 -->
+    <select id="selectByUserAndResource" resultMap="UserFavoriteResultMap">
+        SELECT * FROM user_favorite 
+        WHERE user_id = #{userId} AND resource_id = #{resourceId}
+    </select>
+
+    <!-- 统计用户收藏数量 -->
+    <select id="countByUserId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM user_favorite 
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 统计资源被收藏数量 -->
+    <select id="countByResourceId" parameterType="long" resultType="int">
+        SELECT COUNT(*) FROM user_favorite 
+        WHERE resource_id = #{resourceId}
+    </select>
+
+    <!-- 获取用户收藏的资源类型分布 -->
+    <select id="getFavoriteTypeDistribution" parameterType="long" resultType="java.util.Map">
+        SELECT lr.resource_type, COUNT(*) as count
+        FROM user_favorite uf
+        LEFT JOIN learning_resource lr ON uf.resource_id = lr.resource_id
+        WHERE uf.user_id = #{userId} AND lr.status = 1
+        GROUP BY lr.resource_type
+        ORDER BY count DESC
+    </select>
+
+    <!-- 获取最近收藏的资源 -->
+    <select id="selectRecentFavorites" resultMap="UserFavoriteResultMap">
+        SELECT uf.*, lr.resource_name, lr.resource_type, lr.description, 
+               lr.thumbnail_url, lr.difficulty_level, lr.credit_value, lr.rating
+        FROM user_favorite uf
+        LEFT JOIN learning_resource lr ON uf.resource_id = lr.resource_id
+        WHERE uf.user_id = #{userId} AND lr.status = 1
+        ORDER BY uf.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

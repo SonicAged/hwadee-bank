@@ -18,8 +18,7 @@ import java.util.List;
  * 用户控制器
  */
 @RestController
-@RequestMapping("/user")
-@CrossOrigin(origins = "*")
+@RequestMapping("/users")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
