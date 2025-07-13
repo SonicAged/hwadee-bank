@@ -1,5 +1,6 @@
 package org.hwadee.backend.controller;
 
+import org.hwadee.backend.entity.LoginResponse;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.service.SysUserService;
@@ -31,10 +32,10 @@ public class AuthController {
      * 用户登录
      */
     @PostMapping("/login")
-    public Result<String> login(@RequestBody LoginDTO loginDTO) {
+    public Result<LoginResponse> login(@RequestBody LoginDTO loginDTO) {
         try {
             logger.info("收到登录请求，用户名: {}", loginDTO.getUsername());
-            Result<String> result = userService.login(loginDTO);
+            Result<LoginResponse> result = userService.login(loginDTO);
             logger.info("登录结果: {}", result.getMessage());
             return result;
         } catch (Exception e) {

@@ -119,4 +119,64 @@
         SELECT COUNT(*) FROM course WHERE instructor_id = #{instructorId}
     </select>
 
+    <select id="selectByCondition" resultMap="CourseResultMap">
+        SELECT *
+        FROM course
+        WHERE 1=1
+        <if test="courseName != null and !courseName.isEmpty()">
+            AND course_name LIKE CONCAT('%', #{courseName}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+        <if test="instructorId != null">
+            AND instructor_id = #{instructorId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(*)
+        FROM course
+        WHERE 1=1
+        <if test="courseName != null and !courseName.isEmpty()">
+            AND course_name LIKE CONCAT('%', #{courseName}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND category_id = #{categoryId}
+        </if>
+        <if test="instructorId != null">
+            AND instructor_id = #{instructorId}
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <update id="updateCurrentStudents">
+        UPDATE course
+        SET current_students = #{currentStudents}
+        WHERE course_id = #{courseId}
+    </update>
+
+    <select id="selectByCourseId" resultMap="CourseResultMap">
+        SELECT * FROM course WHERE course_id = #{courseId}
+    </select>
+
+    <delete id="deleteByCourseId">
+        DELETE FROM course WHERE course_id = #{courseId}
+    </delete>
+
+    <select id="selectByInstructorId" resultMap="CourseResultMap">
+        SELECT * FROM course
+        WHERE instructor_id = #{instructorId}
+        ORDER BY create_time DESC
+    </select>
+
 </mapper> 

@@ -32,6 +32,14 @@ export interface ChangePasswordDTO {
   confirmPassword: string
 }
 
+// 分页结果接口
+export interface PageResult<T> {
+  list: T[]
+  total: number
+  page: number
+  size: number
+}
+
 // 用户API服务
 export const userApi = {
   // 获取当前用户信息
@@ -62,7 +70,7 @@ export const userApi = {
 
   // 获取用户信息（根据ID）
   getUserById(userId: number): Promise<UserInfo> {
-    return request.get(`/user/${userId}`)
+    return request.get(`/users/${userId}`)
   },
 
   // 检查用户名是否存在
@@ -82,17 +90,47 @@ export const userApi = {
     status?: number
     page?: number
     size?: number
-  }): Promise<UserInfo[]> {
-    return request.get('/user/list', { params })
+  }): Promise<PageResult<UserInfo>> {
+    return request.get('/users/list', { params })
+  },
+
+  // 创建用户
+  createUser(userData: {
+    username: string
+    password: string
+    realName: string
+    email?: string
+    phone?: string
+    gender?: number
+    status?: number
+  }): Promise<UserInfo> {
+    return request.post('/users/create', userData)
+  },
+
+  // 更新用户
+  updateUser(userId: number, userData: Partial<UserInfo>): Promise<string> {
+    return request.put(`/users/${userId}`, userData)
+  },
+
+  // 删除用户
+  deleteUser(userId: number): Promise<string> {
+    return request.delete(`/users/${userId}`)
+  },
+
+  // 重置用户密码
+  resetPassword(userId: number, newPassword: string): Promise<string> {
+    return request.post(`/users/${userId}/reset-password`, null, {
+      params: { newPassword }
+    })
   },
 
   // 获取用户权限
   getUserPermissions(userId: number): Promise<string[]> {
-    return request.get(`/user/${userId}/permissions`)
+    return request.get(`/users/${userId}/permissions`)
   },
 
   // 获取用户角色
   getUserRoles(userId: number): Promise<string[]> {
-    return request.get(`/user/${userId}/roles`)
+    return request.get(`/users/${userId}/roles`)
   }
 } 

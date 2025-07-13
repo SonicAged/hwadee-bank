@@ -137,12 +137,13 @@ export const courseApi = {
   },
 
   // 课程报名
-  enrollCourse(courseId: number): Promise<void> {
-    return request.post(`/courses/${courseId}/enroll`)
+  enrollCourse(courseId: number, userId: any): Promise<void> {
+    return request.post(`/courses/${courseId}/enroll/${userId}`)
   },
 
-  withdrawCourse(courseId: number): Promise<void> {
-    return request.post(`/courses/${courseId}/withdraw`)
+  // 退出课程
+  withdrawCourse(courseId: number, userId: any): Promise<void> {
+    return request.post(`/courses/${courseId}/withdraw/${userId}`)
   },
 
   // 课程章节
