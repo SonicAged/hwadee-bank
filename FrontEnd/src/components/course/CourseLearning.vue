@@ -151,33 +151,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { 
-  Document, VideoPlay, Edit, Link, PieChart, 
-  Check, View, Download 
+  Document, VideoPlay, Edit, Link
 } from '@element-plus/icons-vue'
-
-// 章节和小节接口定义
-interface Section {
-  sectionId: number
-  chapterId: number
-  sectionName: string
-  resourceType: string
-  contentUrl?: string
-  duration?: number
-  status: string
-  progress: number
-}
-
-interface Chapter {
-  chapterId: number
-  courseId?: number
-  chapterName: string
-  chapterOrder?: number
-  description?: string
-  sections: Section[]
-}
+import type { CourseChapter, CourseSection } from '../../types/course'
 
 // 定义组件props
 const props = defineProps({
@@ -189,9 +168,9 @@ const props = defineProps({
 
 // 响应式状态
 const loading = ref(true)
-const chapters = ref<Chapter[]>([])
+const chapters = ref<CourseChapter[]>([])
 const activeChapters = ref<number[]>([])
-const activeSection = ref<Section | null>(null)
+const activeSection = ref<CourseSection | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const learningNote = ref('')
 const learningProgress = ref(0)
@@ -202,10 +181,12 @@ const fetchCourseChapters = async () => {
   
   // 模拟API响应
   setTimeout(() => {
-    const mockChapters: Chapter[] = [
+    const mockChapters: CourseChapter[] = [
       {
         chapterId: 1,
+        courseId: props.courseId,
         chapterName: '第一章：Java 基础语法',
+        chapterOrder: 1,
         sections: [
           {
             sectionId: 101,
@@ -240,7 +221,9 @@ const fetchCourseChapters = async () => {
       },
       {
         chapterId: 2,
+        courseId: props.courseId,
         chapterName: '第二章：面向对象编程',
+        chapterOrder: 2,
         sections: [
           {
             sectionId: 201,
@@ -255,9 +238,19 @@ const fetchCourseChapters = async () => {
           {
             sectionId: 202,
             chapterId: 2,
-            sectionName: '2.2 面向对象编程指南',
+            sectionName: '2.2 继承与多态',
+            resourceType: 'video',
+            contentUrl: 'https://example.com/videos/oop-inheritance.mp4',
+            duration: 30 * 60, // 30分钟
+            status: 'not_started',
+            progress: 0
+          },
+          {
+            sectionId: 203,
+            chapterId: 2,
+            sectionName: '2.3 OOP实践文档',
             resourceType: 'document',
-            contentUrl: 'https://example.com/docs/oop-guide.pdf',
+            contentUrl: 'https://example.com/docs/oop-practice.pdf',
             status: 'not_started',
             progress: 0
           }
@@ -266,65 +259,64 @@ const fetchCourseChapters = async () => {
     ]
     
     chapters.value = mockChapters
+    loading.value = false
     
     // 默认展开第一章
-    activeChapters.value = [1]
-    
+    if (mockChapters.length > 0) {
+      activeChapters.value = [mockChapters[0].chapterId]
+    }
+
     // 计算学习进度
     calculateLearningProgress()
-    
-    loading.value = false
   }, 800)
 }
 
 // 计算学习进度
 const calculateLearningProgress = () => {
+  if (chapters.value.length === 0) {
+    learningProgress.value = 0
+    return
+  }
+  
   let totalSections = 0
   let completedSections = 0
+  let inProgressSections = 0
   
   chapters.value.forEach(chapter => {
     totalSections += chapter.sections.length
-    completedSections += chapter.sections.filter(section => section.status === 'completed').length
+    
+    chapter.sections.forEach(section => {
+      if (section.status === 'completed') {
+        completedSections++
+      } else if (section.status === 'in_progress') {
+        inProgressSections++
+        completedSections += section.progress / 100
+      }
+    })
   })
   
-  learningProgress.value = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0
+  learningProgress.value = totalSections > 0 
+    ? Math.round((completedSections / totalSections) * 100) 
+    : 0
 }
 
-// 格式化学习进度
-const progressFormat = (percentage: number): string => {
-  return `${percentage}%完成`
+// 格式化进度显示
+const progressFormat = (percentage: number) => {
+  return `${percentage}% 完成`
 }
 
-// 格式化时长
-const formatDuration = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
-}
-
-// 获取章节图标
+// 获取小节图标
 const getSectionIcon = (type: string) => {
   switch (type) {
     case 'video': return VideoPlay
     case 'document': return Document
     case 'quiz': return Edit
-    case 'assignment': return PieChart
     default: return Link
   }
 }
 
-// 获取章节状态
-const getSectionStatusText = (status: string): string => {
-  switch (status) {
-    case 'completed': return '已完成'
-    case 'in_progress': return '学习中'
-    case 'not_started': return '未开始'
-    default: return '未知状态'
-  }
-}
-
-// 获取章节状态样式
-const getSectionStatusType = (status: string): string => {
+// 获取小节状态类型
+const getSectionStatusType = (status: string) => {
   switch (status) {
     case 'completed': return 'success'
     case 'in_progress': return 'warning'
@@ -333,45 +325,67 @@ const getSectionStatusType = (status: string): string => {
   }
 }
 
+// 获取小节状态文本
+const getSectionStatusText = (status: string) => {
+  switch (status) {
+    case 'completed': return '已完成'
+    case 'in_progress': return '学习中'
+    case 'not_started': return '未开始'
+    default: return '未知'
+  }
+}
+
+// 格式化时长
+const formatDuration = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  
+  if (hours > 0) {
+    return `${hours}小时${minutes % 60}分钟`
+  } else {
+    return `${minutes}分钟`
+  }
+}
+
 // 选择章节
-const selectSection = (section: Section) => {
+const selectSection = (section: CourseSection) => {
   activeSection.value = section
   
-  // 如果是视频且为未开始状态，更新为学习中
+  // 如果是视频且未开始，则更新状态为进行中
   if (section.resourceType === 'video' && section.status === 'not_started') {
     section.status = 'in_progress'
-    // 这里应该调用API更新学习状态
+    section.progress = 0
   }
   
-  // 加载该章节的笔记
+  // 加载该小节的笔记
   loadSectionNote(section.sectionId)
 }
 
-// 视频时间更新
-const handleVideoTimeUpdate = (event: Event) => {
-  if (!activeSection.value) return
+// 视频时间更新处理
+const handleVideoTimeUpdate = () => {
+  if (!videoRef.value || !activeSection.value) return
   
-  const video = event.target as HTMLVideoElement
-  const currentTime = Math.floor(video.currentTime)
-  const duration = Math.floor(video.duration)
+  const video = videoRef.value
+  const progress = Math.round((video.currentTime / video.duration) * 100)
   
-  // 计算进度百分比
-  const progress = Math.floor((currentTime / duration) * 100)
-  
-  // 每30秒或进度变化超过10%时保存进度
-  if (progress !== activeSection.value.progress && 
-     (currentTime % 30 === 0 || Math.abs(progress - activeSection.value.progress) >= 10)) {
+  if (activeSection.value.progress < progress) {
     activeSection.value.progress = progress
-    // 这里应该调用API保存学习进度
-    console.log(`保存进度: ${progress}%`)
+    
+    // 更新学习进度
+    calculateLearningProgress()
+    
+    // 这里应该调用API更新学习进度
+    // 但不要每次都调用，可以节流
+    if (progress % 10 === 0) {
+      console.log(`更新进度: ${progress}%`)
+    }
   }
 }
 
-// 视频播放结束
+// 视频结束处理
 const handleVideoEnded = () => {
   if (!activeSection.value) return
   
-  // 更新为已完成状态
   activeSection.value.status = 'completed'
   activeSection.value.progress = 100
   
@@ -383,7 +397,7 @@ const handleVideoEnded = () => {
 }
 
 // 标记为已完成
-const markAsCompleted = (section: Section) => {
+const markAsCompleted = (section: CourseSection) => {
   section.status = 'completed'
   section.progress = 100
   
@@ -395,13 +409,13 @@ const markAsCompleted = (section: Section) => {
 }
 
 // 下载内容
-const downloadContent = (section: Section) => {
+const downloadContent = (section: CourseSection) => {
   // 这里应该调用API下载内容
   ElMessage.success(`正在下载: ${section.sectionName}`)
 }
 
 // 加载章节笔记
-const loadSectionNote = (sectionId: number) => {
+const loadSectionNote = (_sectionId: number) => {
   // 这里应该调用API获取笔记
   // 模拟API响应
   setTimeout(() => {
@@ -431,6 +445,13 @@ onUnmounted(() => {
 watch(() => props.courseId, () => {
   fetchCourseChapters()
 })
+</script>
+
+<script lang="ts">
+// 添加默认导出以解决Vetur错误
+export default {
+  name: 'CourseLearning'
+}
 </script>
 
 <style scoped>
