@@ -75,10 +75,10 @@ public class CourseController {
     /**
      * 报名课程
      */
-    @PostMapping("/{courseId}/enroll")
-    public Result<Void> enrollCourse(@PathVariable Long courseId) {
+    @PostMapping("/{courseId}/enroll/{userId}")
+    public Result<Void> enrollCourse(@PathVariable Long courseId, @PathVariable Long userId) {
         // 这里需要从当前登录用户获取用户ID
-        Long userId = 1L; // 模拟用户ID
+//        Long userId = 1L; // 模拟用户ID
         courseService.enrollCourse(courseId, userId);
         return Result.success();
     }

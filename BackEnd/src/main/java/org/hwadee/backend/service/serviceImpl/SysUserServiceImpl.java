@@ -1,9 +1,6 @@
 package org.hwadee.backend.service.serviceImpl;
 
-import org.hwadee.backend.entity.SysUser;
-import org.hwadee.backend.entity.LoginDTO;
-import org.hwadee.backend.entity.UpdateProfileDTO;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.entity.*;
 import org.hwadee.backend.mapper.SysUserMapper;
 import org.hwadee.backend.service.SysUserService;
 import org.hwadee.backend.service.CreditAccountService;
@@ -33,7 +30,7 @@ public class SysUserServiceImpl implements SysUserService {
     private CreditAccountService creditAccountService;
 
     @Override
-    public Result<String> login(LoginDTO loginDTO) {
+    public Result<LoginResponse> login(LoginDTO loginDTO) {
         try {
             // 验证参数
             if (loginDTO.getUsername() == null || loginDTO.getUsername().trim().isEmpty()) {
@@ -63,10 +60,18 @@ public class SysUserServiceImpl implements SysUserService {
             // 更新最后登录时间
             userMapper.updateLastLoginTime(user.getUserId());
 
+            Long userId = user.getUserId();
+            List<String> role = getUserRoles(userId).getData();
+
             // 生成JWT令牌
             String token = jwtUtil.generateToken(user.getUsername(), user.getUserId());
 
-            return Result.success("登录成功", token);
+            LoginResponse response = new LoginResponse(
+                    userId, user.getUsername(), user.getEmail(),
+                    role, token
+            );
+
+            return Result.success("登录成功", response);
         } catch (Exception e) {
             return Result.error("登录失败：" + e.getMessage());
         }

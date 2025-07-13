@@ -1,7 +1,9 @@
 package org.hwadee.backend.service.serviceImpl;
 
 import org.hwadee.backend.entity.Course;
+import org.hwadee.backend.entity.CourseEnrollment;
 import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.mapper.CourseEnrollmentMapper;
 import org.hwadee.backend.mapper.CourseMapper;
 import org.hwadee.backend.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Autowired
     private CourseMapper courseMapper;
+
+    @Autowired
+    private CourseEnrollmentMapper courseEnrollmentMapper;
 
     @Override
     public PageResult<Course> getCourseList(Integer page, Integer size, String courseName, Long categoryId, Integer status) {
@@ -98,14 +103,19 @@ public class CourseServiceImpl implements CourseService {
         if (course.getCurrentStudents() >= course.getMaxStudents()) {
             throw new RuntimeException("课程已满员，无法报名");
         }
-        
-        // TODO: 检查用户是否已报名
+
+        if (checkUserInCourse(courseId, userId)) {
+            throw new RuntimeException("用户已报名");
+        }
         
         // 更新课程学生数
         int newCurrentStudents = course.getCurrentStudents() + 1;
         courseMapper.updateCurrentStudents(courseId, newCurrentStudents);
-        
-        // TODO: 添加用户报名记录
+
+        CourseEnrollment courseEnrollment = CourseEnrollment.init(course, userId);
+        if (courseEnrollmentMapper.insertEnrollment(courseEnrollment) == 0) {
+            throw new RuntimeException("添加记录失败");
+        }
         
         // 如果报名后达到最大人数，更新课程状态为满员
         if (newCurrentStudents >= course.getMaxStudents()) {
@@ -118,6 +128,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Boolean checkUserInCourse(Long courseId, Long userId) {
+        return courseEnrollmentMapper.checkUserInCourse(courseId, userId) > 0;
+    }
+
+    @Override
     @Transactional
     public void withdrawCourse(Long courseId, Long userId) {
         // 查询课程信息
@@ -127,14 +142,16 @@ public class CourseServiceImpl implements CourseService {
         if (course == null) {
             throw new RuntimeException("课程不存在");
         }
-        
-        // TODO: 检查用户是否已报名
+
+        if (!checkUserInCourse(courseId, userId)) {
+            throw new RuntimeException("用户未报名");
+        }
         
         // 更新课程学生数
         int newCurrentStudents = Math.max(0, course.getCurrentStudents() - 1);
         courseMapper.updateCurrentStudents(courseId, newCurrentStudents);
         
-        // TODO: 删除用户报名记录
+        courseEnrollmentMapper.deleteEnrollmentByCourseIdAndUserId(courseId, userId);
         
         // 如果退出后人数未满，更新课程状态为开放
         if (course.getStatus() == Course.FULL && newCurrentStudents < course.getMaxStudents()) {

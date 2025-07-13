@@ -7,8 +7,9 @@
           <el-button type="primary" icon="Plus">新增课程</el-button>
         </div>
       </template>
-      
-      <el-table :data="courses" border stripe>
+
+      <!-- 表格 -->
+      <el-table :data="courses" border stripe style="width: 100%">
         <el-table-column prop="courseId" label="课程ID" width="80" />
         <el-table-column prop="courseName" label="课程名称" min-width="200" />
         <el-table-column prop="courseCode" label="课程编码" width="120" />
@@ -24,43 +25,84 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
-          <template #default>
-            <el-button type="primary" link>查看</el-button>
-            <el-button type="success" link>报名</el-button>
-            <el-button type="info" link>编辑</el-button>
+          <template #default="{ row }">
+            <el-button type="primary" link @click="viewCourse(row)">查看</el-button>
+            <el-button type="success" link @click="enrollCourse(row)">报名</el-button>
+            <el-button type="info" link @click="editCourse(row)">编辑</el-button>
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 分页 -->
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="[5, 10, 20]"
+        layout="total, sizes, prev, pager, next"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        style="margin-top: 20px; justify-content: flex-end;"
+      />
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { courseApi, Course } from '@/api/course'
+import { useAuthStore } from '@/stores/auth'
 
-const courses = ref([
-  {
-    courseId: 1,
-    courseName: 'Java高级编程',
-    courseCode: 'CS001',
-    creditValue: 3.0,
-    creditHours: 48,
-    currentStudents: 25,
-    maxStudents: 30,
-    status: 1
-  },
-  {
-    courseId: 2,
-    courseName: '数据库系统原理',
-    courseCode: 'CS002',
-    creditValue: 2.5,
-    creditHours: 40,
-    currentStudents: 20,
-    maxStudents: 25,
-    status: 1
-  }
-])
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 
+const userId = user.value?.userId
+const username = user.value?.username
+
+// 分页参数
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 课程列表数据
+const courses = ref<Course[]>([])
+
+// 搜索条件
+const courseName = ref('')
+const categoryId = ref<number | null>(null)
+
+// 获取课程列表
+const fetchCourseList = async () => {
+  const result = await courseApi.getCourseList({
+    page: currentPage.value,
+    size: pageSize.value,
+    courseName: courseName.value,
+    categoryId: categoryId.value ?? undefined
+  })
+
+  courses.value = result.list
+  total.value = result.total
+}
+
+// 页面大小变化时重新加载
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  fetchCourseList()
+}
+
+// 当前页码变化时重新加载
+const handleCurrentChange = (page: number) => {
+  currentPage.value = page
+  fetchCourseList()
+}
+
+// 组件挂载完成后加载数据
+onMounted(() => {
+  fetchCourseList()
+})
+
+// 状态相关方法
 const getStatusText = (status: number) => {
   switch (status) {
     case 0: return '关闭'
@@ -77,6 +119,33 @@ const getStatusColor = (status: number) => {
     case 2: return 'warning'
     default: return ''
   }
+}
+
+// 操作方法保持不变
+const viewCourse = (course: any) => {
+  console.log('查看课程:', course)
+}
+
+const enrollCourse = (course: any) => {
+  console.log('尝试报名课程:', course)
+
+  if (course.status === 2) {
+    alert('该课程已满员，无法报名')
+    return
+  }
+
+  if (course.currentStudents >= course.maxStudents) {
+    alert('人数已满，无法报名')
+    return
+  }
+
+  courseApi.enrollCourse(course.courseId, userId)
+  alert(`用户 ${username} 正在报名课程：${course.courseName}, uid: ${userId}`)
+  course.currentStudents += 1
+}
+
+const editCourse = (course: any) => {
+  console.log('编辑课程:', course)
 }
 </script>
 
