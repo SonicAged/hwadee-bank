@@ -3,6 +3,7 @@ package org.hwadee.backend.service;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.entity.UpdateProfileDTO;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.utils.Result;
 
 import java.util.List;
@@ -51,6 +52,11 @@ public interface SysUserService {
      * 分页查询用户列表
      */
     Result<List<SysUser>> getUserList(String username, String realName, Integer status, int page, int size);
+    
+    /**
+     * 分页查询用户列表（返回分页信息）
+     */
+    Result<PageResult<SysUser>> getUserListPage(String username, String realName, Integer status, int page, int size);
 
     /**
      * 修改密码

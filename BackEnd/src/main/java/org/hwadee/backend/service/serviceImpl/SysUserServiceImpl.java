@@ -3,6 +3,7 @@ package org.hwadee.backend.service.serviceImpl;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.entity.UpdateProfileDTO;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.mapper.SysUserMapper;
 import org.hwadee.backend.service.SysUserService;
 import org.hwadee.backend.service.CreditAccountService;
@@ -245,11 +246,25 @@ public class SysUserServiceImpl implements SysUserService {
                 return Result.error("用户ID不能为空");
             }
 
-            int result = userMapper.deleteByUserId(userId);
+            // 查询用户是否存在
+            SysUser existingUser = userMapper.selectByUserId(userId);
+            if (existingUser == null) {
+                return Result.error("用户不存在");
+            }
+            
+            // 软删除：将用户状态设置为禁用，而不是物理删除
+            SysUser user = new SysUser();
+            user.setUserId(userId);
+            user.setStatus(SysUser.DISABLE); // 设置状态为禁用
+            user.setUpdateTime(LocalDateTime.now());
+            
+            // 更新用户状态
+            int result = userMapper.update(user);
+            
             if (result > 0) {
-                return Result.success("删除成功");
+                return Result.success("用户删除成功");
             } else {
-                return Result.error("删除失败");
+                return Result.error("用户删除失败");
             }
         } catch (Exception e) {
             return Result.error("删除失败：" + e.getMessage());
@@ -266,6 +281,33 @@ public class SysUserServiceImpl implements SysUserService {
             List<SysUser> users = userMapper.selectByCondition(username, realName, status, offset, size);
             
             return Result.success(users);
+        } catch (Exception e) {
+            return Result.error("查询失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<PageResult<SysUser>> getUserListPage(String username, String realName, Integer status, int page, int size) {
+        try {
+            if (page < 1) page = 1;
+            if (size < 1) size = 10;
+
+            int offset = (page - 1) * size;
+            
+            // 查询数据总数
+            long total = userMapper.countByCondition(username, realName, status);
+            
+            // 查询用户列表
+            List<SysUser> users = userMapper.selectByCondition(username, realName, status, offset, size);
+            
+            // 封装分页结果
+            PageResult<SysUser> pageResult = new PageResult<>();
+            pageResult.setList(users);
+            pageResult.setTotal(total);
+            pageResult.setPage(page);
+            pageResult.setSize(size);
+            
+            return Result.success(pageResult);
         } catch (Exception e) {
             return Result.error("查询失败：" + e.getMessage());
         }

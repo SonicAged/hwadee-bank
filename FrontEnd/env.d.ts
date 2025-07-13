@@ -9,7 +9,15 @@ declare module '*.vue' {
 // Extend existing ImportMetaEnv interface
 interface ImportMetaEnv {
   readonly VITE_APP_TITLE?: string
+  readonly DEV: boolean
+  readonly PROD: boolean
+  readonly MODE: string
   // Add more environment variables as needed
+}
+
+// Extend Import meta
+interface ImportMeta {
+  readonly env: ImportMetaEnv
 }
 
 // 声明自定义模块路径

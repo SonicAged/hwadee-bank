@@ -3,6 +3,7 @@ package org.hwadee.backend.controller;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.UpdateProfileDTO;
 import org.hwadee.backend.entity.ChangePasswordDTO;
+import org.hwadee.backend.entity.PageResult;
 import org.hwadee.backend.service.SysUserService;
 import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;
@@ -44,6 +45,23 @@ public class UserController {
     public Result<String> updateUser(@PathVariable Long userId, @RequestBody SysUser user) {
         user.setUserId(userId);
         return userService.updateUser(user);
+    }
+
+    /**
+     * 创建用户
+     */
+    @PostMapping("/create")
+    public Result<SysUser> createUser(@RequestBody SysUser user) {
+        logger.info("创建用户: {}", user.getUsername());
+        // 先调用注册方法
+        Result<String> registerResult = userService.register(user);
+        if (registerResult.isSuccess()) {
+            // 注册成功后，获取用户信息
+            return userService.getUserByUsername(user.getUsername());
+        } else {
+            // 注册失败，返回错误信息
+            return Result.error(registerResult.getMessage());
+        }
     }
 
     /**
@@ -109,13 +127,13 @@ public class UserController {
      * 获取用户列表
      */
     @GetMapping("/list")
-    public Result<List<SysUser>> getUserList(
+    public Result<PageResult<SysUser>> getUserList(
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String realName,
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return userService.getUserList(username, realName, status, page, size);
+        return userService.getUserListPage(username, realName, status, page, size);
     }
 
     /**
@@ -126,6 +144,24 @@ public class UserController {
                                         @RequestParam String oldPassword, 
                                         @RequestParam String newPassword) {
         return userService.changePassword(userId, oldPassword, newPassword);
+    }
+    
+    /**
+     * 重置密码（管理员用）
+     */
+    @PostMapping("/{userId}/reset-password")
+    public Result<String> resetPassword(@PathVariable Long userId, @RequestParam String newPassword) {
+        logger.info("重置用户密码，用户ID: {}", userId);
+        return userService.resetPassword(userId, newPassword);
+    }
+
+    /**
+     * 删除用户
+     */
+    @DeleteMapping("/{userId}")
+    public Result<String> deleteUser(@PathVariable Long userId) {
+        logger.info("删除用户，用户ID: {}", userId);
+        return userService.deleteUser(userId);
     }
 
     /**

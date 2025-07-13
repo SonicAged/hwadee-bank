@@ -1,7 +1,7 @@
 package org.hwadee.backend.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -37,6 +37,6 @@ public class PageResult<T> {
      * 当前页码
      */
     public static <T> PageResult<T> of(List<T> list, long total, int page, int size) {
-        return new PageResult<T>(list, total, page, size);
+        return  new PageResult<T>(list, total, page, size);
     }
 } 
