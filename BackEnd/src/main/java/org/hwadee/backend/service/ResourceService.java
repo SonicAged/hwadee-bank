@@ -168,6 +168,21 @@ public interface ResourceService {
      * 删除资源分类
      */
     boolean deleteCategory(Long categoryId);
+    
+    /**
+     * 获取所有资源分类（平铺结构）
+     */
+    List<ResourceCategory> getAllCategories();
+    
+    /**
+     * 根据ID获取资源分类
+     */
+    ResourceCategory getCategoryById(Long categoryId);
+    
+    /**
+     * 获取分类下的资源数量
+     */
+    int getCategoryResourceCount(Long categoryId);
 
     // ========== 资源标签管理 ==========
 

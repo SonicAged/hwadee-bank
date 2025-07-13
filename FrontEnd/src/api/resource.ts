@@ -226,6 +226,35 @@ export const resourceApi = {
     // 下载资源
     download(resourceId: number): Promise<void> {
       return request.post(`/resources/${resourceId}/download`)
+    },
+
+    // 获取资源评价列表
+    getReviews(resourceId: number, page: number = 1, size: number = 10): Promise<any> {
+      return request.get(`/resource-reviews/resource/${resourceId}`, { params: { page, size } })
+    },
+
+    // 获取当前用户对资源的评价
+    getUserReview(resourceId: number, userId: number): Promise<any> {
+      return request.get(`/resource-reviews/${resourceId}/user/${userId}`)
+    },
+
+    // 添加或更新评价
+    rateResource(data: {
+      resourceId: number,
+      rating: number,
+      reviewContent?: string
+    }): Promise<any> {
+      return request.post('/resource-reviews/rate', data)
+    },
+
+    // 删除评价
+    deleteReview(reviewId: number): Promise<any> {
+      return request.delete(`/resource-reviews/${reviewId}`)
+    },
+
+    // 获取资源平均评分
+    getAverageRating(resourceId: number): Promise<any> {
+      return request.get(`/resource-reviews/${resourceId}/average`)
     }
   },
 
@@ -233,12 +262,37 @@ export const resourceApi = {
   category: {
     // 获取分类树
     getTree(): Promise<ResourceCategory[]> {
-      return request.get('/resources/categories/tree')
+      return request.get('/resource-categories/tree')
     },
 
     // 获取子分类
     getChildren(parentId: number): Promise<ResourceCategory[]> {
-      return request.get(`/resources/categories/${parentId}/children`)
+      return request.get(`/resource-categories/${parentId}/children`)
+    },
+    
+    // 获取所有分类（平铺结构）
+    getAll(): Promise<ResourceCategory[]> {
+      return request.get('/resource-categories/all')
+    },
+    
+    // 获取分类详情
+    getById(categoryId: number): Promise<ResourceCategory> {
+      return request.get(`/resource-categories/${categoryId}`)
+    },
+    
+    // 创建分类
+    create(data: Partial<ResourceCategory>): Promise<ResourceCategory> {
+      return request.post('/resource-categories/create', data)
+    },
+    
+    // 更新分类
+    update(categoryId: number, data: Partial<ResourceCategory>): Promise<ResourceCategory> {
+      return request.put(`/resource-categories/${categoryId}`, data)
+    },
+    
+    // 删除分类
+    delete(categoryId: number): Promise<void> {
+      return request.delete(`/resource-categories/${categoryId}`)
     }
   },
 

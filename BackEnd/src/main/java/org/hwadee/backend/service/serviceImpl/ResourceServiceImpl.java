@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 /**
  * 资源管理服务实现类
@@ -43,7 +44,7 @@ public class ResourceServiceImpl implements ResourceService {
     public LearningResource createResource(LearningResource resource) {
         resource.setCreateTime(LocalDateTime.now());
         resource.setUpdateTime(LocalDateTime.now());
-        resource.setStatus(LearningResource.UNDER_REVIEW); // 默认审核中
+        resource.setStatus(LearningResource.ON); // 默认直接上架
         resource.setViewCount(0);
         resource.setDownloadCount(0);
         resource.setFavoriteCount(0);
@@ -62,6 +63,7 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public LearningResource updateResource(LearningResource resource) {
         resource.setUpdateTime(LocalDateTime.now());
+        resource.setStatus(LearningResource.ON); // 默认直接上架
         learningResourceMapper.update(resource);
         return resource;
     }
@@ -138,7 +140,7 @@ public class ResourceServiceImpl implements ResourceService {
                                                               Double minRating, String tags, int page, int size) {
         int offset = (page - 1) * size;
         
-        // 这里可以实现更复杂的搜索逻辑，包括标签过滤、评分过滤等
+        // 先根据基本条件查询资源
         List<LearningResource> resources = learningResourceMapper.selectByCondition(
             keyword, resourceType, categoryId, difficultyLevel, LearningResource.ON, offset, size);
         
@@ -149,8 +151,38 @@ public class ResourceServiceImpl implements ResourceService {
                 .collect(Collectors.toList());
         }
         
+        // 如果有标签要求，进行额外过滤
+        if (tags != null && !tags.isEmpty()) {
+            resources = resources.stream()
+                .filter(r -> {
+                    // 如果资源没有标签，则不匹配
+                    if (r.getTags() == null || r.getTags().isEmpty()) {
+                        return false;
+                    }
+                    
+                    // 将搜索标签拆分为列表
+                    List<String> searchTags = Arrays.asList(tags.split(","));
+                    // 将资源标签拆分为列表
+                    List<String> resourceTags = Arrays.asList(r.getTags().split(","));
+                    
+                    // 检查资源的标签是否包含搜索的任意一个标签
+                    return searchTags.stream()
+                        .anyMatch(tag -> resourceTags.stream()
+                            .anyMatch(resourceTag -> resourceTag.trim().equalsIgnoreCase(tag.trim())));
+                })
+                .collect(Collectors.toList());
+        }
+        
+        // 获取满足条件的总记录数
+        // 注意：由于我们在内存中进行了额外的过滤，这里的total可能不准确
+        // 理想情况下应该修改SQL查询来实现更精确的计数
         long total = learningResourceMapper.countByCondition(
             keyword, resourceType, categoryId, difficultyLevel, LearningResource.ON);
+        
+        if (minRating != null || (tags != null && !tags.isEmpty())) {
+            // 如果应用了内存过滤，使用过滤后的资源数量作为total
+            total = resources.size();
+        }
         
         return new PageResult<>(resources, total, page, size);
     }
@@ -298,6 +330,21 @@ public class ResourceServiceImpl implements ResourceService {
     @Override
     public boolean deleteCategory(Long categoryId) {
         return resourceCategoryMapper.deleteById(categoryId) > 0;
+    }
+
+    @Override
+    public ResourceCategory getCategoryById(Long categoryId) {
+        return resourceCategoryMapper.selectById(categoryId);
+    }
+
+    @Override
+    public List<ResourceCategory> getAllCategories() {
+        return resourceCategoryMapper.selectAll();
+    }
+
+    @Override
+    public int getCategoryResourceCount(Long categoryId) {
+        return resourceCategoryMapper.countResourcesByCategory(categoryId);
     }
 
     // ========== 资源标签管理 ==========

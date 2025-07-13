@@ -283,6 +283,19 @@ onMounted(() => {
   color: #fff;
 }
 
+/* 添加子菜单背景色样式 */
+:deep(.el-sub-menu .el-menu) {
+  background-color: #263445 !important;
+}
+
+:deep(.el-sub-menu .el-menu-item) {
+  background-color: #263445;
+}
+
+:deep(.el-sub-menu .el-menu-item:hover) {
+  background-color: #1f2d3d;
+}
+
 .header {
   background-color: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);

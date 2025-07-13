@@ -63,7 +63,8 @@
             description = #{description}, content_url = #{contentUrl}, 
             thumbnail_url = #{thumbnailUrl}, file_size = #{fileSize}, 
             duration = #{duration}, difficulty_level = #{difficultyLevel}, 
-            credit_value = #{creditValue}, tags = #{tags}, 
+            credit_value = #{creditValue}, rating = #{rating},
+            rating_count = #{ratingCount}, tags = #{tags},
             prerequisites = #{prerequisites}, learning_objectives = #{learningObjectives},
             status = #{status}, update_time = NOW()
         WHERE resource_id = #{resourceId}
@@ -87,7 +88,12 @@
         SELECT * FROM learning_resource 
         WHERE 1=1
         <if test="resourceName != null and resourceName != ''">
-            AND resource_name LIKE CONCAT('%', #{resourceName}, '%')
+            AND (
+                resource_name LIKE CONCAT('%', #{resourceName}, '%')
+                OR description LIKE CONCAT('%', #{resourceName}, '%')
+                OR keywords LIKE CONCAT('%', #{resourceName}, '%')
+                OR tags LIKE CONCAT('%', #{resourceName}, '%')
+            )
         </if>
         <if test="resourceType != null and resourceType != ''">
             AND resource_type = #{resourceType}
@@ -110,7 +116,12 @@
         SELECT COUNT(*) FROM learning_resource 
         WHERE 1=1
         <if test="resourceName != null and resourceName != ''">
-            AND resource_name LIKE CONCAT('%', #{resourceName}, '%')
+            AND (
+                resource_name LIKE CONCAT('%', #{resourceName}, '%')
+                OR description LIKE CONCAT('%', #{resourceName}, '%')
+                OR keywords LIKE CONCAT('%', #{resourceName}, '%')
+                OR tags LIKE CONCAT('%', #{resourceName}, '%')
+            )
         </if>
         <if test="resourceType != null and resourceType != ''">
             AND resource_type = #{resourceType}
@@ -162,7 +173,7 @@
     <!-- 更新评分 -->
     <update id="updateRating">
         UPDATE learning_resource 
-        SET rating = #{rating}, rating_count = #{ratingCount}
+        SET rating = #{rating}, rating_count = #{ratingCount}, update_time = NOW()
         WHERE resource_id = #{resourceId}
     </update>
 
