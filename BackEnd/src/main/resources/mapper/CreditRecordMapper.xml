@@ -122,5 +122,46 @@
     <delete id="deleteById" parameterType="long">
         DELETE FROM credit_record WHERE record_id = #{recordId}
     </delete>
+    
+    <!-- 根据条件搜索记录 -->
+    <select id="searchByCondition" resultMap="CreditRecordResultMap">
+        SELECT * FROM credit_record 
+        <where>
+            <if test="creditType != null and creditType != ''">
+                AND credit_type = #{creditType}
+            </if>
+            <if test="operationType != null">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 根据操作类型统计记录数量 -->
+    <select id="countByOperationType" resultType="long">
+        SELECT COUNT(*) FROM credit_record WHERE operation_type = #{operationType}
+    </select>
+    
+    <!-- 获取特定用户的学分类型分布 -->
+    <select id="getCreditTypeDistributionByUserId" resultType="java.util.Map">
+        SELECT credit_type as 'key', COUNT(*) as 'value' 
+        FROM credit_record 
+        WHERE user_id = #{userId} AND status = 1 
+        GROUP BY credit_type
+    </select>
+    
+    <!-- 获取系统整体学分类型分布 -->
+    <select id="getCreditTypeDistribution" resultType="java.util.Map">
+        SELECT credit_type as 'key', COUNT(*) as 'value' 
+        FROM credit_record 
+        WHERE status = 1 
+        GROUP BY credit_type
+    </select>
 
 </mapper> 

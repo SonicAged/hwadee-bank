@@ -3,7 +3,7 @@ package org.hwadee.backend.controller;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.UpdateProfileDTO;
 import org.hwadee.backend.entity.ChangePasswordDTO;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.service.SysUserService;
 import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;

@@ -40,7 +40,7 @@ public interface CreditApplicationMapper {
     /**
      * 更新申请状态
      */
-    int updateStatus(@Param("applicationId") Long applicationId, @Param("status") Integer status, @Param("rejectionReason") String rejectionReason);
+    int updateStatus(@Param("applicationId") Long applicationId, @Param("status") Integer status, @Param("remark") String remark);
 
     /**
      * 更新申请信息

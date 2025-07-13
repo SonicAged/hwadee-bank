@@ -1,7 +1,7 @@
 package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.CreditRecord;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.mapper.CreditRecordMapper;
 import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;

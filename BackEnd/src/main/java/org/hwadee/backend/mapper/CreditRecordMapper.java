@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Param;
 import org.hwadee.backend.entity.CreditRecord;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 学分记录Mapper接口
@@ -78,4 +79,30 @@ public interface CreditRecordMapper {
      * 根据用户ID和操作类型统计记录数量
      */
     long countByUserIdAndOperationType(@Param("userId") Long userId, @Param("operationType") Integer operationType);
+    
+    /**
+     * 根据条件搜索记录
+     */
+    List<CreditRecord> searchByCondition(
+        @Param("creditType") String creditType, 
+        @Param("operationType") Integer operationType, 
+        @Param("status") Integer status, 
+        @Param("offset") Integer offset, 
+        @Param("limit") Integer limit
+    );
+    
+    /**
+     * 根据操作类型统计记录数量
+     */
+    long countByOperationType(@Param("operationType") Integer operationType);
+    
+    /**
+     * 获取特定用户的学分类型分布
+     */
+    Map<String, Integer> getCreditTypeDistributionByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 获取系统整体学分类型分布
+     */
+    Map<String, Integer> getCreditTypeDistribution();
 } 

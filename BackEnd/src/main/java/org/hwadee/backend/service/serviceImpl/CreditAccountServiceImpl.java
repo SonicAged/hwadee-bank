@@ -42,8 +42,8 @@ public class CreditAccountServiceImpl implements CreditAccountService {
             // 创建新账户
             CreditAccount account = new CreditAccount();
             account.setUserId(userId);
-            account.setTotalCredits(BigDecimal.ZERO);
-            account.setAvailableCredits(BigDecimal.ZERO);
+            account.setTotalCredits(BigDecimal.valueOf(30));
+            account.setAvailableCredits(BigDecimal.valueOf(30));
             account.setFrozenCredits(BigDecimal.ZERO);
             account.setCreateTime(LocalDateTime.now());
             account.setUpdateTime(LocalDateTime.now());
@@ -74,60 +74,6 @@ public class CreditAccountServiceImpl implements CreditAccountService {
             return Result.success(account);
         } catch (Exception e) {
             return Result.error("查询账户失败：" + e.getMessage());
-        }
-    }
-
-    @Override
-    @Transactional
-    public Result<String> updateAccount(CreditAccount account) {
-        try {
-            if (account.getAccountId() == null) {
-                return Result.error("账户ID不能为空");
-            }
-
-            account.setUpdateTime(LocalDateTime.now());
-            int result = accountMapper.update(account);
-            if (result > 0) {
-                return Result.success("账户更新成功");
-            } else {
-                return Result.error("账户更新失败");
-            }
-        } catch (Exception e) {
-            return Result.error("更新账户失败：" + e.getMessage());
-        }
-    }
-
-    @Override
-    @Transactional
-    public Result<String> addCredits(Long userId, BigDecimal credits) {
-        try {
-            if (userId == null) {
-                return Result.error("用户ID不能为空");
-            }
-            if (credits == null || credits.compareTo(BigDecimal.ZERO) <= 0) {
-                return Result.error("学分数量必须大于0");
-            }
-
-            CreditAccount account = accountMapper.selectByUserId(userId);
-            if (account == null) {
-                return Result.error("账户不存在");
-            }
-
-            // 更新学分
-            account.setTotalCredits(account.getTotalCredits().add(credits));
-            account.setAvailableCredits(account.getAvailableCredits().add(credits));
-            account.setUpdateTime(LocalDateTime.now());
-
-            int result = accountMapper.update(account);
-            if (result > 0) {
-                // 记录学分变动
-                recordCreditChange(userId, credits, 1, "学分获得", "系统增加", "学分账户增加");
-                return Result.success("学分添加成功");
-            } else {
-                return Result.error("学分添加失败");
-            }
-        } catch (Exception e) {
-            return Result.error("添加学分失败：" + e.getMessage());
         }
     }
 
@@ -274,6 +220,46 @@ public class CreditAccountServiceImpl implements CreditAccountService {
             }
         } catch (Exception e) {
             return Result.error("解冻学分失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<BigDecimal> getTotalCreditsInSystem() {
+        try {
+            BigDecimal totalCredits = accountMapper.sumTotalCredits();
+            return Result.success(totalCredits != null ? totalCredits : BigDecimal.ZERO);
+        } catch (Exception e) {
+            return Result.error("获取系统总学分失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<BigDecimal> getTotalAvailableCredits() {
+        try {
+            BigDecimal availableCredits = accountMapper.sumAvailableCredits();
+            return Result.success(availableCredits != null ? availableCredits : BigDecimal.ZERO);
+        } catch (Exception e) {
+            return Result.error("获取系统可用学分失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<BigDecimal> getTotalFrozenCredits() {
+        try {
+            BigDecimal frozenCredits = accountMapper.sumFrozenCredits();
+            return Result.success(frozenCredits != null ? frozenCredits : BigDecimal.ZERO);
+        } catch (Exception e) {
+            return Result.error("获取系统冻结学分失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public Result<Integer> getTotalAccountCount() {
+        try {
+            long count = accountMapper.countAllAccounts();
+            return Result.success((int)count);
+        } catch (Exception e) {
+            return Result.error("获取账户总数失败：" + e.getMessage());
         }
     }
 

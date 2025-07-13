@@ -1,13 +1,15 @@
 package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.CreditApplication;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.service.CreditApplicationService;
 import org.hwadee.backend.utils.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.util.List;
 
@@ -139,12 +141,39 @@ public class CreditApplicationController {
      */
     @PostMapping("/review")
     public Result<String> reviewApplication(
-            @RequestParam Long applicationId,
-            @RequestParam Integer status,
-            @RequestParam(required = false) String reviewComment,
-            @RequestParam Long reviewerId) {
+            @RequestBody Map<String, Object> reviewData) {
         try {
-            logger.info("审核申请，申请ID: {}, 状态: {}, 审核人: {}", applicationId, status, reviewerId);
+            Long applicationId = ((Number) reviewData.get("applicationId")).longValue();
+            Integer status = ((Number) reviewData.get("status")).intValue();
+            String reviewComment = (String) reviewData.get("reviewComment");
+            
+            // 如果前端未提供reviewerId，使用认证上下文中的用户ID
+            Long reviewerId = null;
+            if (reviewData.get("reviewerId") != null) {
+                reviewerId = ((Number) reviewData.get("reviewerId")).longValue();
+            }
+            
+            logger.info("审核申请，申请ID: {}, 状态: {}, 审核人: {}, 评论：{}", applicationId, status, reviewerId, reviewComment);
+            return applicationService.reviewApplication(applicationId, status, reviewComment, reviewerId);
+        } catch (Exception e) {
+            logger.error("审核申请时发生异常", e);
+            return Result.error("服务器内部错误");
+        }
+    }
+    
+    /**
+     * 兼容旧接口 - 审核申请
+     */
+    @PostMapping("/review/{applicationId}")
+    public Result<String> reviewApplicationLegacy(
+            @PathVariable Long applicationId,
+            @RequestBody Map<String, Object> reviewData) {
+        try {
+            Integer status = ((Number) reviewData.get("status")).intValue();
+            String reviewComment = (String) reviewData.get("reviewComment");
+            Long reviewerId = null; // 默认为空
+            
+            logger.info("审核申请(旧接口)，申请ID: {}, 状态: {}", applicationId, status);
             return applicationService.reviewApplication(applicationId, status, reviewComment, reviewerId);
         } catch (Exception e) {
             logger.error("审核申请时发生异常", e);

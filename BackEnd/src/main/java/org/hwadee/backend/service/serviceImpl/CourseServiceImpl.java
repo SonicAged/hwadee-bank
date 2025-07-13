@@ -2,7 +2,7 @@ package org.hwadee.backend.service.serviceImpl;
 
 import org.hwadee.backend.entity.Course;
 import org.hwadee.backend.entity.CourseEnrollment;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.mapper.CourseEnrollmentMapper;
 import org.hwadee.backend.mapper.CourseMapper;
 import org.hwadee.backend.service.CourseService;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,6 +114,8 @@ public class CourseServiceImpl implements CourseService {
         courseMapper.updateCurrentStudents(courseId, newCurrentStudents);
 
         CourseEnrollment courseEnrollment = CourseEnrollment.init(course, userId);
+        // 设置当前日期为报名日期
+        courseEnrollment.setEnrollmentDate(LocalDate.now());
         if (courseEnrollmentMapper.insertEnrollment(courseEnrollment) == 0) {
             throw new RuntimeException("添加记录失败");
         }

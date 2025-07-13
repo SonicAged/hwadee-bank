@@ -28,6 +28,14 @@
             <el-icon><User /></el-icon>
             <template #title>用户管理</template>
           </el-menu-item>
+          <el-menu-item index="/dashboard/roles" v-if="hasPermission('system:role')">
+            <el-icon><UserFilled /></el-icon>
+            <template #title>角色管理</template>
+          </el-menu-item>
+          <el-menu-item index="/dashboard/permissions" v-if="hasPermission('system:permission')">
+            <el-icon><Key /></el-icon>
+            <template #title>权限管理</template>
+          </el-menu-item>
         </el-sub-menu>
         
         <el-sub-menu index="credit">
@@ -46,6 +54,14 @@
           <el-menu-item index="/dashboard/credit/application" v-if="hasPermission('credit:application')">
             <el-icon><DocumentAdd /></el-icon>
             <template #title>学分申请</template>
+          </el-menu-item>
+          <el-menu-item index="/dashboard/credit/conversion" v-if="hasPermission('credit:conversion')">
+            <el-icon><RefreshRight /></el-icon>
+            <template #title>学分转换</template>
+          </el-menu-item>
+          <el-menu-item index="/dashboard/credit/statistics" v-if="hasPermission('credit:statistics')">
+            <el-icon><PieChart /></el-icon>
+            <template #title>统计概览</template>
           </el-menu-item>
         </el-sub-menu>
         
@@ -76,21 +92,6 @@
           <el-menu-item index="/dashboard/courses/training" v-if="hasPermission('course:training')">
             <el-icon><School /></el-icon>
             <template #title>培训项目</template>
-          </el-menu-item>
-        </el-sub-menu>
-        
-        <el-sub-menu index="audit" v-if="hasPermission('audit')">
-          <template #title>
-            <el-icon><Monitor /></el-icon>
-            <span>审计管理</span>
-          </template>
-          <el-menu-item index="/dashboard/audit/operation" v-if="hasPermission('audit:operation')">
-            <el-icon><Document /></el-icon>
-            <template #title>操作日志</template>
-          </el-menu-item>
-          <el-menu-item index="/dashboard/audit/system" v-if="hasPermission('audit:system')">
-            <el-icon><Warning /></el-icon>
-            <template #title>系统日志</template>
           </el-menu-item>
         </el-sub-menu>
       </el-menu>
@@ -150,6 +151,12 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
+import { 
+  RefreshRight, PieChart, UserFilled, Key, List, Monitor, 
+  Setting, User, Document, Wallet, Files, Menu, Reading, 
+  House, Fold, Expand, ArrowDown, Coin, School, Warning,
+  DocumentAdd
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()

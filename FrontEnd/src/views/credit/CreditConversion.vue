@@ -251,8 +251,16 @@ const handleConversion = async () => {
   try {
     await conversionFormRef.value.validate()
     converting.value = true
+    
+    // 确保用户已登录
+    if (!authStore.user?.userId) {
+      ElMessage.error('请先登录')
+      converting.value = false
+      return
+    }
 
     await creditApi.conversion.convert({
+      userId: authStore.user.userId,
       sourceType: conversionForm.sourceType,
       targetType: conversionForm.targetType,
       sourceCredits: conversionForm.sourceCredits

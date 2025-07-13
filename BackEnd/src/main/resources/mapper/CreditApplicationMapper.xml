@@ -58,7 +58,7 @@
     <!-- 更新申请状态 -->
     <update id="updateStatus">
         UPDATE credit_application 
-        SET status = #{status}, rejection_reason = #{rejectionReason}, review_time = NOW()
+        SET status = #{status}, remark = #{remark}, approve_time = NOW()
         WHERE application_id = #{applicationId}
     </update>
 

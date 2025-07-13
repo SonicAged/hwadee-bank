@@ -2,6 +2,7 @@ package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.*;
 import org.hwadee.backend.service.ResourceService;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

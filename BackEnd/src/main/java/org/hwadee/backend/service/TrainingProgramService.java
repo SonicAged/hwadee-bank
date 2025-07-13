@@ -1,8 +1,7 @@
 package org.hwadee.backend.service;
 
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.entity.TrainingProgram;
-import org.hwadee.backend.entity.TrainingParticipant;
 
 import java.util.List;
 import java.util.Map;

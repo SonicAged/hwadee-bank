@@ -1,6 +1,6 @@
 package org.hwadee.backend.controller;
 
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.entity.TrainingProgram;
 import org.hwadee.backend.service.TrainingProgramService;
 import org.hwadee.backend.utils.JwtUtil;

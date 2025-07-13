@@ -2,16 +2,15 @@ package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.CreditConversionRule;
 import org.hwadee.backend.service.CreditConversionService;
-import org.hwadee.backend.utils.JwtUtil;
 import org.hwadee.backend.utils.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 学分转换控制器
@@ -24,9 +23,6 @@ public class CreditConversionController {
 
     @Autowired
     private CreditConversionService conversionService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
 
     /**
      * 获取所有启用的转换规则
@@ -75,27 +71,17 @@ public class CreditConversionController {
     /**
      * 执行学分转换
      */
-    @PostMapping("/convert")
-    public Result<String> convertCredits(
-            HttpServletRequest request,
-            @RequestParam String sourceType,
-            @RequestParam String targetType,
-            @RequestParam BigDecimal sourceCredits) {
+    @PostMapping("/execute")
+    public Result<String> convertCredits(@RequestBody Map<String, Object> params) {
         try {
-            // 从token获取用户ID
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return Result.error("未提供有效的认证令牌");
-            }
+            Long userId = ((Number) params.get("userId")).longValue();
+            String sourceType = (String) params.get("sourceType");
+            String targetType = (String) params.get("targetType");
+            BigDecimal sourceCredits = new BigDecimal(params.get("sourceCredits").toString());
 
-            String token = authHeader.substring(7);
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            
-            if (userId == null) {
-                return Result.error("无效的认证令牌");
-            }
-
-            logger.info("用户 {} 执行学分转换：{} {} -> {}", userId, sourceCredits, sourceType, targetType);
+            logger.info("执行学分转换，用户ID: {}, 源类型: {}, 目标类型: {}, 源学分: {}", 
+                       userId, sourceType, targetType, sourceCredits);
+                       
             return conversionService.convertCredits(userId, sourceType, targetType, sourceCredits);
         } catch (Exception e) {
             logger.error("执行学分转换时发生异常", e);
@@ -106,10 +92,12 @@ public class CreditConversionController {
     /**
      * 创建转换规则（管理员功能）
      */
-    @PostMapping("/rule")
+    @PostMapping("/rule/create")
     public Result<String> createRule(@RequestBody CreditConversionRule rule) {
         try {
-            logger.info("创建转换规则：{} -> {}, 比例: {}", rule.getSourceType(), rule.getTargetType(), rule.getConversionRate());
+            logger.info("创建转换规则，源类型: {}, 目标类型: {}, 转换比例: {}", 
+                      rule.getSourceType(), rule.getTargetType(), rule.getConversionRate());
+                      
             return conversionService.createRule(rule);
         } catch (Exception e) {
             logger.error("创建转换规则时发生异常", e);
@@ -120,7 +108,7 @@ public class CreditConversionController {
     /**
      * 更新转换规则（管理员功能）
      */
-    @PutMapping("/rule")
+    @PutMapping("/rule/update")
     public Result<String> updateRule(@RequestBody CreditConversionRule rule) {
         try {
             logger.info("更新转换规则，规则ID: {}", rule.getRuleId());

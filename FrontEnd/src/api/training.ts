@@ -12,7 +12,36 @@ export const trainingApi = {
     programType?: number
     status?: number
   }): Promise<PageResult<TrainingProgram>> {
-    return request.get('/training/programs', { params })
+    // 使用URLSearchParams对象构建查询字符串
+    const searchParams = new URLSearchParams();
+    
+    // 只添加已定义的参数
+    if (params.page !== undefined && params.page !== null) {
+      searchParams.append('page', params.page.toString());
+    }
+    
+    if (params.size !== undefined && params.size !== null) {
+      searchParams.append('size', params.size.toString());
+    }
+    
+    if (params.programName !== undefined && params.programName !== null && params.programName !== '') {
+      searchParams.append('programName', params.programName);
+    }
+    
+    if (params.programType !== undefined && params.programType !== null) {
+      searchParams.append('programType', params.programType.toString());
+    }
+    
+    if (params.status !== undefined && params.status !== null) {
+      searchParams.append('status', params.status.toString());
+    }
+    
+    // 构建完整的URL
+    const queryString = searchParams.toString();
+    const url = queryString ? `/training/programs?${queryString}` : '/training/programs';
+    
+    console.log('培训项目API调用URL:', url);
+    return request.get(url);
   },
 
   // 获取培训项目详情
@@ -61,7 +90,13 @@ export const trainingApi = {
     size?: number
     status?: number
   }): Promise<PageResult<any>> {
-    return request.get('/training/user/programs', { params })
+    let url = '/training/user/programs?';
+    if (params.page !== undefined) url += `page=${params.page}&`;
+    if (params.size !== undefined) url += `size=${params.size}&`;
+    if (params.status !== undefined) url += `status=${params.status}&`;
+    // 移除末尾可能的&
+    url = url.endsWith('&') ? url.slice(0, -1) : url;
+    return request.get(url);
   },
 
   // 获取培训项目参与者
@@ -70,16 +105,20 @@ export const trainingApi = {
     size?: number
     status?: number
   }): Promise<PageResult<TrainingParticipant>> {
-    return request.get(`/training/programs/${programId}/participants`, { params })
+    let url = `/training/programs/${programId}/participants?`;
+    if (params.page !== undefined) url += `page=${params.page}&`;
+    if (params.size !== undefined) url += `size=${params.size}&`;
+    if (params.status !== undefined) url += `status=${params.status}&`;
+    // 移除末尾可能的&
+    url = url.endsWith('&') ? url.slice(0, -1) : url;
+    return request.get(url);
   },
 
   // 检查用户是否参与培训项目
   checkUserInProgram(programId: number): Promise<boolean> {
     // 添加时间戳参数避免缓存问题
     const timestamp = new Date().getTime()
-    return request.get(`/training/programs/${programId}/check`, {
-      params: { _t: timestamp }
-    })
+    return request.get(`/training/programs/${programId}/check?_t=${timestamp}`)
   },
 
   // 获取培训项目统计信息
@@ -89,6 +128,6 @@ export const trainingApi = {
 
   // 获取最新培训项目
   getLatestPrograms(limit: number = 5): Promise<TrainingProgram[]> {
-    return request.get('/training/programs/latest', { params: { limit } })
+    return request.get(`/training/programs/latest?limit=${limit}`)
   }
 } 

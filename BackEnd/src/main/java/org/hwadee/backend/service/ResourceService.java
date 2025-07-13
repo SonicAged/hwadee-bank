@@ -1,7 +1,7 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.LearningResource;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.entity.ResourceCategory;
 import org.hwadee.backend.entity.ResourceTag;
 

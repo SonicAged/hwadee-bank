@@ -55,12 +55,24 @@ const router = createRouter({
           name: 'ProfileTest',
           component: () => import('../views/test/ProfileTest.vue')
         },
-        // 用户管理
+        // 系统管理
         {
           path: 'users',
           name: 'UserManagement',
           component: () => import('../views/system/UserManagement.vue'),
           meta: { permission: 'system:user' }
+        },
+        {
+          path: 'roles',
+          name: 'RoleManagement',
+          component: () => import('../views/system/RoleManagement.vue'),
+          meta: { permission: 'system:role' }
+        },
+        {
+          path: 'permissions',
+          name: 'PermissionManagement',
+          component: () => import('../views/system/PermissionManagement.vue'),
+          meta: { permission: 'system:permission' }
         },
         // 学分管理
         {
@@ -83,6 +95,18 @@ const router = createRouter({
               name: 'CreditApplication',
               component: () => import('../views/credit/CreditApplication.vue'),
               meta: { permission: 'credit:application' }
+            },
+            {
+              path: 'conversion',
+              name: 'CreditConversion',
+              component: () => import('../views/credit/CreditConversion.vue'),
+              meta: { permission: 'credit:conversion' }
+            },
+            {
+              path: 'statistics',
+              name: 'CreditStatistics',
+              component: () => import('../views/credit/CreditStatistics.vue'),
+              meta: { permission: 'credit:statistics' }
             }
           ]
         },

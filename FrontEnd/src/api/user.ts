@@ -91,7 +91,7 @@ export const userApi = {
     page?: number
     size?: number
   }): Promise<PageResult<UserInfo>> {
-    return request.get('/users/list', { params })
+    return request.get('/users/list', params)
   },
 
   // 创建用户
@@ -133,4 +133,14 @@ export const userApi = {
   getUserRoles(userId: number): Promise<string[]> {
     return request.get(`/users/${userId}/roles`)
   }
+}
+
+// 获取当前用户的权限
+export function getUserPermissions() {
+  return request.get('/auth/permissions')
+}
+
+// 获取当前用户的角色
+export function getUserRoles() {
+  return request.get('/auth/roles')
 } 

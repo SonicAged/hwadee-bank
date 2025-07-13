@@ -117,7 +117,36 @@ export const courseApi = {
     categoryId?: number
     status?: number
   }): Promise<PageResult<Course>> {
-    return request.get('/courses/page', { params })
+    // 使用URLSearchParams对象构建查询字符串
+    const searchParams = new URLSearchParams();
+    
+    // 只添加已定义的参数
+    if (params.page !== undefined && params.page !== null) {
+      searchParams.append('page', params.page.toString());
+    }
+    
+    if (params.size !== undefined && params.size !== null) {
+      searchParams.append('size', params.size.toString());
+    }
+    
+    if (params.courseName !== undefined && params.courseName !== null && params.courseName !== '') {
+      searchParams.append('courseName', params.courseName);
+    }
+    
+    if (params.categoryId !== undefined && params.categoryId !== null) {
+      searchParams.append('categoryId', params.categoryId.toString());
+    }
+    
+    if (params.status !== undefined && params.status !== null) {
+      searchParams.append('status', params.status.toString());
+    }
+    
+    // 构建完整的URL
+    const queryString = searchParams.toString();
+    const url = queryString ? `/courses/page?${queryString}` : '/courses/page';
+    
+    console.log('课程列表API调用URL:', url);
+    return request.get(url);
   },
 
   getCourseById(courseId: number): Promise<Course> {
@@ -138,7 +167,11 @@ export const courseApi = {
 
   // 课程报名
   enrollCourse(courseId: number, userId: any): Promise<void> {
-    return request.post(`/courses/${courseId}/enroll/${userId}`)
+    // 添加报名日期参数，使用当前日期
+    const enrollmentDate = new Date().toISOString().split('T')[0]; // 格式化为YYYY-MM-DD
+    
+    // 尝试将报名日期作为URL查询参数传递
+    return request.post(`/courses/${courseId}/enroll/${userId}?enrollmentDate=${enrollmentDate}`);
   },
 
   // 退出课程
@@ -158,7 +191,14 @@ export const courseApi = {
     type?: string
     keyword?: string
   }): Promise<PageResult<CourseResource>> {
-    return request.get(`/courses/${courseId}/resources`, { params })
+    let url = `/courses/${courseId}/resources?`;
+    if (params.page !== undefined) url += `page=${params.page}&`;
+    if (params.size !== undefined) url += `size=${params.size}&`;
+    if (params.type !== undefined) url += `type=${encodeURIComponent(params.type || '')}&`;
+    if (params.keyword !== undefined) url += `keyword=${encodeURIComponent(params.keyword || '')}&`;
+    // 移除末尾可能的&
+    url = url.endsWith('&') ? url.slice(0, -1) : url;
+    return request.get(url);
   },
 
   downloadResource(resourceId: number): Promise<Blob> {
@@ -233,7 +273,14 @@ export const courseApi = {
     programType?: number
     status?: number
   }): Promise<PageResult<any>> {
-    return request.get('/training/programs', { params })
+    let url = '/training/programs?';
+    if (params.page !== undefined) url += `page=${params.page}&`;
+    if (params.size !== undefined) url += `size=${params.size}&`;
+    if (params.programType !== undefined) url += `programType=${params.programType}&`;
+    if (params.status !== undefined) url += `status=${params.status}&`;
+    // 移除末尾可能的&
+    url = url.endsWith('&') ? url.slice(0, -1) : url;
+    return request.get(url);
   },
 
   getTrainingProgramDetail(programId: number): Promise<any> {

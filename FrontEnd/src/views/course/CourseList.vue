@@ -167,10 +167,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { storeToRefs } from 'pinia'
-import { courseApi, type Course } from '@/api/course'
-import { useAuthStore } from '@/stores/auth'
-import { resourceApi } from '@/api/resource'
-import request from '@/utils/request'
+import { courseApi, type Course } from '../../api/course'
+import { useAuthStore } from '../../stores/auth'
+import { resourceApi } from '../../api/resource'
+import request from '../../utils/request'
 
 const router = useRouter()
 const authStore = useAuthStore()

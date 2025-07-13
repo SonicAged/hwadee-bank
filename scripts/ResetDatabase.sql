@@ -12,7 +12,7 @@ DROP USER IF EXISTS 'bank'@'%';
 -- 删除现有数据库（如果存在）
 DROP DATABASE IF EXISTS BankAnalysis;
 
--- 创建新的数据库
+-- 创建新的数据库，确保使用utf8mb4字符集和utf8mb4_unicode_ci排序规则
 CREATE DATABASE BankAnalysis DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 创建数据库用户
@@ -24,6 +24,14 @@ FLUSH PRIVILEGES;
 
 -- 使用数据库
 USE BankAnalysis;
+
+-- 设置连接的字符集为utf8mb4
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+SET character_set_connection=utf8mb4;
+SET character_set_database=utf8mb4;
+SET character_set_results=utf8mb4;
+SET character_set_server=utf8mb4;
 
 -- ====================================
 -- 1. 权限管理系统相关表
@@ -490,17 +498,17 @@ INSERT INTO sys_role (role_name, role_key, description) VALUES
 
 -- 插入基础权限
 INSERT INTO sys_permission (permission_name, permission_key, permission_type, parent_id, path, component, icon, sort_order) VALUES
-('System Management', 'system', 1, 0, '/system', NULL, 'el-icon-setting', 1),
-('User Management', 'system:user', 2, 1, '/system/user', 'system/User', 'el-icon-user', 1),
-('Role Management', 'system:role', 2, 1, '/system/role', 'system/Role', 'el-icon-s-custom', 2),
-('Permission Management', 'system:permission', 2, 1, '/system/permission', 'system/Permission', 'el-icon-key', 3),
-('Credit Management', 'credit', 1, 0, '/credit', NULL, 'el-icon-coin', 2),
-('Credit Account', 'credit:account', 2, 5, '/credit/account', 'credit/Account', 'el-icon-wallet', 1),
-('Credit Record', 'credit:record', 2, 5, '/credit/record', 'credit/Record', 'el-icon-document', 2),
-('Credit Application', 'credit:application', 2, 5, '/credit/application', 'credit/Application', 'el-icon-edit', 3),
-('Resource Management', 'resource', 1, 0, '/resource', NULL, 'el-icon-folder', 3),
-('Resource Library', 'resource:library', 2, 9, '/resource/library', 'resource/Library', 'el-icon-collection', 1),
-('Resource Category', 'resource:category', 2, 9, '/resource/category', 'resource/Category', 'el-icon-menu', 2);
+('System Management', 'system', 1, 0, '/system', NULL, 'Setting', 1),
+('User Management', 'system:user', 2, 1, '/system/user', 'system/User', 'User', 1),
+('Role Management', 'system:role', 2, 1, '/system/role', 'system/Role', 'UserFilled', 2),
+('Permission Management', 'system:permission', 2, 1, '/system/permission', 'system/Permission', 'Key', 3),
+('Credit Management', 'credit', 1, 0, '/credit', NULL, 'CreditCard', 2),
+('Credit Account', 'credit:account', 2, 5, '/credit/account', 'credit/Account', 'Wallet', 1),
+('Credit Record', 'credit:record', 2, 5, '/credit/record', 'credit/Record', 'Document', 2),
+('Credit Application', 'credit:application', 2, 5, '/credit/application', 'credit/Application', 'Edit', 3),
+('Resource Management', 'resource', 1, 0, '/resource', NULL, 'Folder', 3),
+('Resource Library', 'resource:library', 2, 9, '/resource/library', 'resource/Library', 'Files', 1),
+('Resource Category', 'resource:category', 2, 9, '/resource/category', 'resource/Category', 'Menu', 2);
 
 -- 绑定管理员角色权限
 INSERT INTO sys_user_role (user_id, role_id) VALUES
@@ -540,11 +548,11 @@ INSERT INTO resource_tag (tag_name, tag_color, use_count) VALUES
 
 -- 插入学分转换规则
 INSERT INTO credit_conversion_rule (source_type, target_type, conversion_rate, min_credits, max_credits, status) VALUES
-('Skill Certificate', 'Vocational Training', 0.8, 1.0, 10.0, 1),
-('Vocational Training', 'Skill Certificate', 0.7, 1.0, 8.0, 1),
-('Academic Education', 'Vocational Training', 0.9, 1.0, 15.0, 1),
-('Online Course', 'Vocational Training', 0.6, 1.0, 5.0, 1),
-('Practical Project', 'Skill Certificate', 0.9, 1.0, 12.0, 1);
+('技能证书', '职业培训', 0.8, 1.0, 10.0, 1),
+('职业培训', '技能证书', 0.7, 1.0, 8.0, 1),
+('学历教育', '职业培训', 0.9, 1.0, 15.0, 1),
+('在线课程', '职业培训', 0.6, 1.0, 5.0, 1),
+('其他', '技能证书', 0.9, 1.0, 12.0, 1);
 
 -- 插入示例学习资源
 INSERT INTO learning_resource (resource_name, resource_type, category_id, subject, keywords, description, content_url, thumbnail_url, difficulty_level, credit_value, uploader_id, tags, prerequisites, learning_objectives, status) VALUES

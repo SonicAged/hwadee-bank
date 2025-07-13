@@ -351,7 +351,7 @@ const programRules = {
 // 获取项目列表
 const getList = async () => {
   try {
-    console.log('开始获取项目列表')
+    console.log('开始获取项目列表，参数:', JSON.stringify(queryParams))
     const { list, total: totalCount } = await trainingApi.getProgramList(queryParams)
     programList.value = list
     total.value = totalCount
@@ -363,8 +363,17 @@ const getList = async () => {
     // 检查用户是否已报名 - 添加await确保等待完成
     await checkEnrollStatus()
     console.log('项目列表和报名状态获取完成')
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取培训项目列表失败', error)
+    if (error.response) {
+      console.error('响应状态:', error.response.status)
+      console.error('响应数据:', error.response.data)
+      console.error('响应头:', error.response.headers)
+    } else if (error.request) {
+      console.error('请求已发送但无响应:', error.request)
+    } else {
+      console.error('请求错误:', error.message)
+    }
     ElMessage.error('获取培训项目列表失败')
   }
 }
@@ -374,6 +383,7 @@ const resetQuery = () => {
   queryParams.programName = ''
   queryParams.programType = undefined
   queryParams.status = undefined
+  queryParams.page = 1
   getList()
 }
 

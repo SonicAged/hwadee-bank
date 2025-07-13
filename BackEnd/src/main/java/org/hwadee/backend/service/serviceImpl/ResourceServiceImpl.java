@@ -3,6 +3,7 @@ package org.hwadee.backend.service.serviceImpl;
 import org.hwadee.backend.entity.*;
 import org.hwadee.backend.mapper.*;
 import org.hwadee.backend.service.ResourceService;
+import org.hwadee.backend.utils.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,9 +86,9 @@ public class ResourceServiceImpl implements ResourceService {
     // ========== 资源查询与分页 ==========
 
     @Override
-    public PageResult<LearningResource> getResourcesByPage(int page, int size, String resourceName, 
-                                                         String resourceType, Long categoryId, 
-                                                         Integer difficultyLevel, Integer status) {
+    public PageResult<LearningResource> getResourcesByPage(int page, int size, String resourceName,
+                                                           String resourceType, Long categoryId,
+                                                           Integer difficultyLevel, Integer status) {
         int offset = (page - 1) * size;
         
         List<LearningResource> resources = learningResourceMapper.selectByCondition(

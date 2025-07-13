@@ -1,7 +1,7 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.Course;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 
 import java.util.List;
 import java.util.Map;

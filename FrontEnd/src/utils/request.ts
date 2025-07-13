@@ -1,126 +1,140 @@
 import axios from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { ElMessage } from 'element-plus'
+
+// 自定义响应接口
+export interface ResponseData<T = any> {
+  code: number
+  message: string
+  data: T
+  success: boolean
+  error: boolean
+}
 
 // 创建axios实例
-const request = axios.create({
-  baseURL: 'http://localhost:8080/api',
-  timeout: 5000,
-  withCredentials: true // 支持跨域请求携带凭证
+const service: AxiosInstance = axios.create({
+  baseURL: 'http://localhost:8080/api', // API基础URL
+  timeout: 10000 // 请求超时时间
 })
 
 // 请求拦截器
-request.interceptors.request.use(
-  config => {
-    // 添加token
+service.interceptors.request.use(
+  (config) => {
+    // 从localStorage中获取token并添加到请求头
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`
     }
     
-    // 设置请求头以确保UTF-8编码
-    if (config.headers && config.method === 'post') {
-      config.headers['Content-Type'] = 'application/json;charset=UTF-8'
-    }
-    
-    // 打印请求信息，便于调试
-    console.log(`[请求] ${config.method?.toUpperCase()} ${config.url}`, {
-      params: config.params,
-      data: config.data,
-      headers: config.headers
-    })
+    // 记录请求的URL和参数，方便调试
+    console.log(`发送请求: ${config.method?.toUpperCase()} ${config.url}`, 
+      config.params ? `参数: ${JSON.stringify(config.params)}` : '',
+      config.data ? `数据: ${JSON.stringify(config.data)}` : '')
     
     return config
   },
-  error => {
-    console.error('请求错误:', error)
+  (error) => {
+    console.error('Request error:', error)
     return Promise.reject(error)
   }
 )
 
 // 响应拦截器
-request.interceptors.response.use(
-  response => {
-    // 打印完整的响应信息，便于调试
-    console.log(`[完整响应] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
-      status: response.status,
-      data: response.data,
-      headers: response.headers
-    })
-    
-    if (!response.data) {
-      return Promise.reject(new Error('返回数据为空'))
+service.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const res = response.data
+
+    // 将后端返回的数据包装为我们定义的ResponseData格式
+    if (res.code !== undefined) {
+      // 检查返回状态
+      if (res.code !== 200 && res.code !== 0) {
+        ElMessage.error(res.message || '请求出错')
+        return Promise.reject(new Error(res.message || '请求出错'))
+      }
+      return res.data
     }
     
-    const { code, message, data, success, error } = response.data
-    
-    if (code === 200 || success === true) {
-      // 响应成功，直接返回数据
-      return data
-    } else if (code === 401) {
-      ElMessageBox.alert('登录已过期，请重新登录', '提示', {
-        confirmButtonText: '确定',
-        callback: () => {
-          localStorage.removeItem('token')
-          window.location.href = '/login'
-        }
-      })
-      return Promise.reject(new Error(message || '认证失败，请重新登录'))
-    } else {
-      // 不在这里显示错误消息，让调用的地方处理
-      console.error(`[响应错误] 代码: ${code}, 消息: ${message}`)
-      return Promise.reject(new Error(message || '请求失败'))
-    }
+    // 如果后端没有按照标准响应格式返回，则直接返回数据
+    return res
   },
-  error => {
-    console.error('响应错误:', error)
+  (error) => {
+    let message = '请求出错，请稍后重试'
     
     if (error.response) {
-      const { status, data } = error.response
-      
-      // 打印详细错误信息
-      console.error(`[HTTP错误] 状态: ${status}`, {
-        url: error.config?.url,
-        method: error.config?.method?.toUpperCase(),
-        data: error.config?.data,
-        response: data
-      })
+      const status = error.response.status
       
       switch (status) {
+        case 400:
+          message = '请求错误'
+          break
         case 401:
-          ElMessage.error('未授权，请重新登录')
+          message = '未授权，请重新登录'
+          // 清除token并跳转到登录页
           localStorage.removeItem('token')
-          window.location.href = '/login'
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 1500)
           break
         case 403:
-          ElMessage.error('权限不足')
+          message = '拒绝访问'
           break
         case 404:
-          ElMessage.error('请求的资源不存在')
+          message = '请求的资源不存在'
           break
         case 500:
-          // 不在这里显示错误消息，让调用的地方处理
-          if (data && data.message) {
-            return Promise.reject(new Error(data.message))
-          }
+          message = '服务器内部错误'
           break
         default:
-          if (data && data.message) {
-            return Promise.reject(new Error(data.message))
-          }
+          message = `请求失败: ${status}`
       }
-    } else if (error.request) {
-      console.error('[网络错误] 没有收到响应', {
-        url: error.config?.url,
-        method: error.config?.method?.toUpperCase()
-      })
-      ElMessage.error('网络连接失败')
-    } else {
-      console.error('[请求配置错误]', error.message)
-      ElMessage.error('请求配置错误')
+      
+      if (error.response.data && error.response.data.message) {
+        message = error.response.data.message
+      }
     }
     
+    ElMessage.error(message)
     return Promise.reject(error)
   }
 )
 
-export default request 
+// 封装GET请求
+const get = <T = any>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> => {
+  // 对params参数进行处理，将嵌套对象扁平化
+  if (params) {
+    // 处理嵌套参数，如params.params
+    const flatParams = {...params};
+    if (flatParams.params) {
+      Object.entries(flatParams.params).forEach(([key, value]) => {
+        flatParams[key] = value;
+      });
+      delete flatParams.params;
+    }
+    return service.get(url, { params: flatParams, ...config }) as unknown as Promise<T>;
+  }
+  return service.get(url, { params, ...config }) as unknown as Promise<T>
+}
+
+// 封装POST请求
+const post = <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  return service.post(url, data, config) as unknown as Promise<T>
+}
+
+// 封装PUT请求
+const put = <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => {
+  return service.put(url, data, config) as unknown as Promise<T>
+}
+
+// 封装DELETE请求
+const del = <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  return service.delete(url, config) as unknown as Promise<T>
+}
+
+// 导出请求方法
+export default {
+  get,
+  post,
+  put,
+  delete: del,
+  request: service.request
+} 

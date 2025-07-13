@@ -213,11 +213,14 @@ const distribution = reactive<CreditDistributionStatistics>({
 const loadStatistics = async () => {
   loading.value = true
   try {
-    // 并行加载各种统计数据
+    // 获取当前用户ID
+    const userId = authStore.user?.userId
+
+    // 并行加载各种统计数据，传递用户ID
     const [overviewRes, trendRes, distributionRes] = await Promise.all([
-      creditApi.statistics.getOverview(),
-      creditApi.statistics.getTrend(),
-      creditApi.statistics.getDistribution()
+      creditApi.statistics.getOverview(userId),
+      creditApi.statistics.getTrend(userId),
+      creditApi.statistics.getDistribution(userId)
     ])
 
     Object.assign(overview, overviewRes)

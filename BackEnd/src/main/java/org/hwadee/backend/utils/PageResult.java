@@ -1,4 +1,4 @@
-package org.hwadee.backend.entity;
+package org.hwadee.backend.utils;
 
 import lombok.Data;
 import lombok.AllArgsConstructor;

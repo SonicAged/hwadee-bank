@@ -1,7 +1,7 @@
 package org.hwadee.backend.service;
 
 import org.hwadee.backend.entity.CreditApplication;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.utils.Result;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public interface CreditApplicationService {
     Result<List<CreditApplication>> getUserApplications(Long userId, int page, int size);
 
     /**
-     * 获取所有申请列表（管理员）
+     * 获取所有申请（管理员）
      */
     Result<List<CreditApplication>> getAllApplications(int page, int size);
 
@@ -42,7 +42,7 @@ public interface CreditApplicationService {
     Result<String> reviewApplication(Long applicationId, Integer status, String reviewComment, Long reviewerId);
 
     /**
-     * 更新申请信息
+     * 更新申请
      */
     Result<String> updateApplication(CreditApplication application);
 
@@ -52,23 +52,32 @@ public interface CreditApplicationService {
     Result<String> deleteApplication(Long applicationId);
 
     /**
-     * 统计申请数量
-     */
-    Result<Integer> getApplicationCount();
-
-    /**
-     * 根据状态统计申请数量
-     */
-    Result<Integer> getApplicationCountByStatus(Integer status);
-
-    /**
-     * 根据条件搜索申请列表
+     * 搜索申请
      */
     Result<List<CreditApplication>> searchApplications(Long userId, String applicationType, String achievementName, Integer status, int page, int size);
 
     /**
-     * 分页查询申请列表
+     * 分页获取申请列表
      */
-    Result<PageResult<CreditApplication>> getApplicationListWithPaging(
-            Integer status, String applicationType, String achievementName, int page, int size);
+    Result<PageResult<CreditApplication>> getApplicationListWithPaging(Integer status, String applicationType, String achievementName, int page, int size);
+    
+    /**
+     * 获取申请总数
+     */
+    Result<Integer> getApplicationCount();
+
+    /**
+     * 根据状态获取申请总数
+     */
+    Result<Integer> getApplicationCountByStatus(Integer status);
+    
+    /**
+     * 获取用户申请总数
+     */
+    Result<Integer> getApplicationCountByUserId(Long userId);
+    
+    /**
+     * 获取用户指定状态的申请总数
+     */
+    Result<Integer> getApplicationCountByUserIdAndStatus(Long userId, Integer status);
 } 

@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.hwadee.backend.entity.CreditAccount;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -41,4 +42,19 @@ public interface CreditAccountMapper {
      * 获取学分排行榜
      */
     List<CreditAccount> selectTopUsersByCredits(@Param("limit") int limit);
+    
+    /**
+     * 获取系统总学分
+     */
+    BigDecimal sumTotalCredits();
+    
+    /**
+     * 获取系统可用学分总额
+     */
+    BigDecimal sumAvailableCredits();
+    
+    /**
+     * 获取系统冻结学分总额
+     */
+    BigDecimal sumFrozenCredits();
 } 

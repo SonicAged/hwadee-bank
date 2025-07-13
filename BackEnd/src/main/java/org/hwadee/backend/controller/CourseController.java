@@ -1,7 +1,7 @@
 package org.hwadee.backend.controller;
 
 import org.hwadee.backend.entity.Course;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.service.CourseService;
 import org.hwadee.backend.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;

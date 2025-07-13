@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 认证控制器
@@ -67,6 +68,60 @@ public class AuthController {
             return userService.getUserById(userId);
         } catch (Exception e) {
             logger.error("获取用户信息时发生异常", e);
+            return Result.error("服务器内部错误: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前用户权限
+     */
+    @GetMapping("/permissions")
+    public Result<List<String>> getCurrentUserPermissions(HttpServletRequest request) {
+        try {
+            // 从请求头中获取token
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return Result.error("未提供有效的认证令牌");
+            }
+
+            String token = authHeader.substring(7); // 移除 "Bearer " 前缀
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            if (userId == null) {
+                return Result.error("无效的认证令牌");
+            }
+
+            logger.info("获取用户权限，用户ID: {}", userId);
+            return userService.getUserPermissions(userId);
+        } catch (Exception e) {
+            logger.error("获取用户权限时发生异常", e);
+            return Result.error("服务器内部错误: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前用户角色
+     */
+    @GetMapping("/roles")
+    public Result<List<String>> getCurrentUserRoles(HttpServletRequest request) {
+        try {
+            // 从请求头中获取token
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return Result.error("未提供有效的认证令牌");
+            }
+
+            String token = authHeader.substring(7); // 移除 "Bearer " 前缀
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            if (userId == null) {
+                return Result.error("无效的认证令牌");
+            }
+
+            logger.info("获取用户角色，用户ID: {}", userId);
+            return userService.getUserRoles(userId);
+        } catch (Exception e) {
+            logger.error("获取用户角色时发生异常", e);
             return Result.error("服务器内部错误: " + e.getMessage());
         }
     }

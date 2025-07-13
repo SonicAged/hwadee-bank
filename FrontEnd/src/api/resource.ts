@@ -110,7 +110,17 @@ export const resourceApi = {
       status?: number
     }): Promise<PageResult<LearningResource>> {
       console.log('正在请求资源列表，参数:', JSON.stringify(params))
-      return request.get('/resources/page', { params })
+      let url = '/resources/page?'
+      if (params.page !== undefined) url += `page=${params.page}&`
+      if (params.size !== undefined) url += `size=${params.size}&`
+      if (params.resourceName !== undefined) url += `resourceName=${encodeURIComponent(params.resourceName || '')}&`
+      if (params.resourceType !== undefined) url += `resourceType=${encodeURIComponent(params.resourceType || '')}&`
+      if (params.categoryId !== undefined) url += `categoryId=${params.categoryId}&`
+      if (params.difficultyLevel !== undefined) url += `difficultyLevel=${params.difficultyLevel}&`
+      if (params.status !== undefined) url += `status=${params.status}&`
+      // 移除末尾可能的&
+      url = url.endsWith('&') ? url.slice(0, -1) : url
+      return request.get(url)
     },
 
     // 获取资源详情
@@ -305,7 +315,7 @@ export const resourceApi = {
 
     // 获取热门标签
     getPopular(limit?: number): Promise<ResourceTag[]> {
-      return request.get('/resources/tags/popular', { params: { limit } })
+      return request.get(`/resources/tags/popular?limit=${limit || 10}`)
     },
 
     // 获取资源标签

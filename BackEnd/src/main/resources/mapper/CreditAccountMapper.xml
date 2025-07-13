@@ -62,5 +62,20 @@
         ORDER BY ca.total_credits DESC 
         LIMIT #{limit}
     </select>
+    
+    <!-- 获取系统总学分 -->
+    <select id="sumTotalCredits" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_credits), 0) FROM credit_account
+    </select>
+    
+    <!-- 获取系统可用学分总额 -->
+    <select id="sumAvailableCredits" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(available_credits), 0) FROM credit_account
+    </select>
+    
+    <!-- 获取系统冻结学分总额 -->
+    <select id="sumFrozenCredits" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(frozen_credits), 0) FROM credit_account
+    </select>
 
 </mapper> 

@@ -193,11 +193,11 @@ const filterForm = reactive({
 
 // 提交表单
 const submitForm = reactive({
-  creditType: '',
-  creditSource: '',
-  creditAmount: 1.0,
-  description: '',
-  evidenceUrl: ''
+  creditType: '',       // 对应后端的applicationType
+  creditSource: '',     // 对应后端的achievementName
+  creditAmount: 1.0,    // 对应后端的appliedCredits
+  description: '',      // 对应后端的achievementDescription
+  evidenceUrl: ''       // 对应后端的evidenceFiles
 })
 
 // 审核表单
@@ -341,17 +341,20 @@ const handleSubmit = async () => {
     await submitFormRef.value.validate()
     submitting.value = true
 
+    // 确保用户已登录
+    if (!currentUser?.userId) {
+      ElMessage.warning('请先登录')
+      submitting.value = false
+      return
+    }
+
     await creditApi.application.submit({
+      userId: currentUser.userId,
       applicationType: submitForm.creditType,
       achievementName: submitForm.creditSource,
       achievementDescription: submitForm.description,
       appliedCredits: submitForm.creditAmount,
-      evidenceFiles: submitForm.evidenceUrl,
-      creditType: submitForm.creditType,
-      creditSource: submitForm.creditSource,
-      creditAmount: submitForm.creditAmount,
-      description: submitForm.description,
-      evidenceUrl: submitForm.evidenceUrl
+      evidenceFiles: submitForm.evidenceUrl
     })
 
     ElMessage.success('申请提交成功')
@@ -371,10 +374,22 @@ const handleReview = async () => {
 
   reviewing.value = true
   try {
+    // 确保用户已登录
+    if (!currentUser?.userId) {
+      ElMessage.warning('请先登录')
+      reviewing.value = false
+      return
+    }
+    
+    // 获取当前用户ID
+    const reviewerId = currentUser.userId
+    
+    // 调用API，传递当前用户ID作为审核人ID
     await creditApi.application.review(
       reviewForm.applicationId,
       reviewForm.status,
-      reviewForm.reviewComment
+      reviewForm.reviewComment,
+      reviewerId
     )
 
     ElMessage.success('审核完成')

@@ -1,17 +1,14 @@
 package org.hwadee.backend.controller;
 
-import org.hwadee.backend.mapper.CreditAccountMapper;
-import org.hwadee.backend.mapper.CreditRecordMapper;
-import org.hwadee.backend.mapper.CreditApplicationMapper;
-import org.hwadee.backend.utils.JwtUtil;
+import org.hwadee.backend.service.CreditAccountService;
+import org.hwadee.backend.service.CreditApplicationService;
+import org.hwadee.backend.service.CreditRecordService;
 import org.hwadee.backend.utils.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,200 +22,155 @@ public class CreditStatisticsController {
     private static final Logger logger = LoggerFactory.getLogger(CreditStatisticsController.class);
 
     @Autowired
-    private CreditAccountMapper accountMapper;
+    private CreditAccountService accountService;
 
     @Autowired
-    private CreditRecordMapper recordMapper;
+    private CreditApplicationService applicationService;
 
     @Autowired
-    private CreditApplicationMapper applicationMapper;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    private CreditRecordService recordService;
 
     /**
-     * 获取当前用户的学分统计概览
+     * 获取统计概览
      */
     @GetMapping("/overview")
-    public Result<Map<String, Object>> getUserOverview(HttpServletRequest request) {
+    public Result<Map<String, Object>> getOverview(@RequestParam(required = false) Long userId) {
         try {
-            // 从token获取用户ID
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return Result.error("未提供有效的认证令牌");
-            }
-
-            String token = authHeader.substring(7);
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            
-            if (userId == null) {
-                return Result.error("无效的认证令牌");
-            }
-
             Map<String, Object> overview = new HashMap<>();
-            
-            // 学分账户信息
-            org.hwadee.backend.entity.CreditAccount account = accountMapper.selectByUserId(userId);
-            if (account != null) {
-                overview.put("totalCredits", account.getTotalCredits());
-                overview.put("availableCredits", account.getAvailableCredits());
-                overview.put("frozenCredits", account.getFrozenCredits());
+
+            // 1. 账户统计数据
+            if (userId != null) {
+                // 获取指定用户的账户信息
+                Result<?> accountResult = accountService.getAccountByUserId(userId);
+                if (accountResult.isSuccess() && accountResult.getData() != null) {
+                    org.hwadee.backend.entity.CreditAccount account = 
+                        (org.hwadee.backend.entity.CreditAccount) accountResult.getData();
+                    overview.put("totalCredits", account.getTotalCredits());
+                    overview.put("availableCredits", account.getAvailableCredits());
+                    overview.put("frozenCredits", account.getFrozenCredits());
+                } else {
+                    overview.put("totalCredits", 0);
+                    overview.put("availableCredits", 0);
+                    overview.put("frozenCredits", 0);
+                }
+                
+                // 获取指定用户的记录数量
+                Result<?> recordCountResult = recordService.getRecordCountByUserId(userId);
+                if (recordCountResult.isSuccess()) {
+                    overview.put("totalRecords", recordCountResult.getData());
+                } else {
+                    overview.put("totalRecords", 0);
+                }
+                
+                // 获取指定用户的申请统计
+                Result<?> totalApplicationResult = applicationService.getApplicationCountByUserId(userId);
+                if (totalApplicationResult.isSuccess()) {
+                    overview.put("totalApplications", totalApplicationResult.getData());
+                } else {
+                    overview.put("totalApplications", 0);
+                }
+
+                Result<?> pendingApplicationResult = 
+                    applicationService.getApplicationCountByUserIdAndStatus(userId, 1); // 1=待审核
+                if (pendingApplicationResult.isSuccess()) {
+                    overview.put("pendingApplications", pendingApplicationResult.getData());
+                } else {
+                    overview.put("pendingApplications", 0);
+                }
+
+                Result<?> approvedApplicationResult = 
+                    applicationService.getApplicationCountByUserIdAndStatus(userId, 3); // 3=通过
+                if (approvedApplicationResult.isSuccess()) {
+                    overview.put("approvedApplications", approvedApplicationResult.getData());
+                } else {
+                    overview.put("approvedApplications", 0);
+                }
+
+                Result<?> rejectedApplicationResult = 
+                    applicationService.getApplicationCountByUserIdAndStatus(userId, 4); // 4=拒绝
+                if (rejectedApplicationResult.isSuccess()) {
+                    overview.put("rejectedApplications", rejectedApplicationResult.getData());
+                } else {
+                    overview.put("rejectedApplications", 0);
+                }
+                
             } else {
-                overview.put("totalCredits", BigDecimal.ZERO);
-                overview.put("availableCredits", BigDecimal.ZERO);
-                overview.put("frozenCredits", BigDecimal.ZERO);
+                // 获取系统整体统计数据（仅管理员可用）
+                overview.put("totalCredits", accountService.getTotalCreditsInSystem().getData());
+                overview.put("availableCredits", accountService.getTotalAvailableCredits().getData());
+                overview.put("frozenCredits", accountService.getTotalFrozenCredits().getData());
+                overview.put("totalRecords", recordService.getRecordCount().getData());
+                overview.put("totalApplications", applicationService.getApplicationCount().getData());
+                overview.put("pendingApplications", applicationService.getApplicationCountByStatus(1).getData()); // 1=待审核
+                overview.put("approvedApplications", applicationService.getApplicationCountByStatus(3).getData()); // 3=通过
+                overview.put("rejectedApplications", applicationService.getApplicationCountByStatus(4).getData()); // 4=拒绝
             }
-
-            // 学分记录统计
-            long totalRecords = recordMapper.countByUserId(userId);
-            overview.put("totalRecords", totalRecords);
-
-            // 申请统计
-            int totalApplications = applicationMapper.countByUserId(userId);
-            int pendingApplications = applicationMapper.countByUserIdAndStatus(userId, 1); // 待审核
-            int approvedApplications = applicationMapper.countByUserIdAndStatus(userId, 3); // 已通过
-            int rejectedApplications = applicationMapper.countByUserIdAndStatus(userId, 4); // 已拒绝
-            
-            overview.put("totalApplications", totalApplications);
-            overview.put("pendingApplications", pendingApplications);
-            overview.put("approvedApplications", approvedApplications);
-            overview.put("rejectedApplications", rejectedApplications);
 
             return Result.success(overview);
         } catch (Exception e) {
-            logger.error("获取用户统计概览时发生异常", e);
+            logger.error("获取统计概览时发生异常", e);
             return Result.error("服务器内部错误");
         }
     }
 
     /**
-     * 获取学分记录趋势统计
+     * 获取操作趋势
      */
     @GetMapping("/trend")
-    public Result<Map<String, Object>> getCreditTrend(
-            HttpServletRequest request,
-            @RequestParam(defaultValue = "7") int days) {
+    public Result<Map<String, Integer>> getTrend(@RequestParam(required = false) Long userId) {
         try {
-            // 从token获取用户ID
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return Result.error("未提供有效的认证令牌");
-            }
+            Map<String, Integer> trend = new HashMap<>();
+            
+            if (userId != null) {
+                // 指定用户的学分记录统计
+                Result<?> gainResult = recordService.getRecordCountByUserIdAndOperationType(userId, 1); // 1=获得
+                if (gainResult.isSuccess()) {
+                    trend.put("gainRecords", (Integer) gainResult.getData());
+                } else {
+                    trend.put("gainRecords", 0);
+                }
 
-            String token = authHeader.substring(7);
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            
-            if (userId == null) {
-                return Result.error("无效的认证令牌");
-            }
+                Result<?> consumeResult = recordService.getRecordCountByUserIdAndOperationType(userId, 2); // 2=消费
+                if (consumeResult.isSuccess()) {
+                    trend.put("consumeRecords", (Integer) consumeResult.getData());
+                } else {
+                    trend.put("consumeRecords", 0);
+                }
 
-            Map<String, Object> trend = new HashMap<>();
-            
-            // 这里可以实现更复杂的趋势统计逻辑
-            // 简化实现，返回基本统计
-            long gainRecords = recordMapper.countByUserIdAndOperationType(userId, 1); // 获得
-            long consumeRecords = recordMapper.countByUserIdAndOperationType(userId, 2); // 消费
-            long convertRecords = recordMapper.countByUserIdAndOperationType(userId, 3); // 转换
-            
-            trend.put("gainRecords", gainRecords);
-            trend.put("consumeRecords", consumeRecords);
-            trend.put("convertRecords", convertRecords);
-            trend.put("period", days + "天");
+                Result<?> convertResult = recordService.getRecordCountByUserIdAndOperationType(userId, 3); // 3=转换
+                if (convertResult.isSuccess()) {
+                    trend.put("convertRecords", (Integer) convertResult.getData());
+                } else {
+                    trend.put("convertRecords", 0);
+                }
+            } else {
+                // 系统整体统计（管理员）
+                trend.put("gainRecords", (Integer) recordService.getRecordCountByOperationType(1).getData()); // 1=获得
+                trend.put("consumeRecords", (Integer) recordService.getRecordCountByOperationType(2).getData()); // 2=消费
+                trend.put("convertRecords", (Integer) recordService.getRecordCountByOperationType(3).getData()); // 3=转换
+            }
 
             return Result.success(trend);
         } catch (Exception e) {
-            logger.error("获取学分趋势统计时发生异常", e);
+            logger.error("获取操作趋势时发生异常", e);
             return Result.error("服务器内部错误");
         }
     }
 
     /**
-     * 获取学分类型分布统计
+     * 获取学分分布
      */
     @GetMapping("/distribution")
-    public Result<Map<String, Object>> getCreditDistribution(HttpServletRequest request) {
+    public Result<Map<String, Object>> getDistribution(@RequestParam(required = false) Long userId) {
         try {
-            // 从token获取用户ID
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return Result.error("未提供有效的认证令牌");
-            }
-
-            String token = authHeader.substring(7);
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            
-            if (userId == null) {
-                return Result.error("无效的认证令牌");
-            }
-
             Map<String, Object> distribution = new HashMap<>();
             
-            // 这里可以实现学分类型分布统计
-            // 简化实现，返回模拟数据
-            Map<String, Integer> typeDistribution = new HashMap<>();
-            typeDistribution.put("学历教育", 60);
-            typeDistribution.put("职业培训", 25);
-            typeDistribution.put("技能证书", 10);
-            typeDistribution.put("其他", 5);
-            
-            distribution.put("typeDistribution", typeDistribution);
+            Map<String, Object> typeDist = recordService.getCreditTypeDistribution(userId).getData();
+            distribution.put("typeDistribution", typeDist);
 
             return Result.success(distribution);
         } catch (Exception e) {
-            logger.error("获取学分分布统计时发生异常", e);
-            return Result.error("服务器内部错误");
-        }
-    }
-
-    /**
-     * 获取系统整体统计（管理员功能）
-     */
-    @GetMapping("/system")
-    public Result<Map<String, Object>> getSystemStatistics() {
-        try {
-            Map<String, Object> stats = new HashMap<>();
-            
-            // 用户账户统计
-            long totalAccounts = accountMapper.countAllAccounts();
-            stats.put("totalAccounts", totalAccounts);
-
-            // 学分记录统计
-            long totalRecords = recordMapper.countAllRecords();
-            stats.put("totalRecords", totalRecords);
-
-            // 申请统计
-            int totalApplications = applicationMapper.countAll();
-            int pendingApplications = applicationMapper.countByStatus(1);
-            int approvedApplications = applicationMapper.countByStatus(3);
-            int rejectedApplications = applicationMapper.countByStatus(4);
-            
-            stats.put("totalApplications", totalApplications);
-            stats.put("pendingApplications", pendingApplications);
-            stats.put("approvedApplications", approvedApplications);
-            stats.put("rejectedApplications", rejectedApplications);
-
-            return Result.success(stats);
-        } catch (Exception e) {
-            logger.error("获取系统统计时发生异常", e);
-            return Result.error("服务器内部错误");
-        }
-    }
-
-    /**
-     * 获取用户排行榜
-     */
-    @GetMapping("/ranking")
-    public Result<Map<String, Object>> getUserRanking(
-            @RequestParam(defaultValue = "10") int limit) {
-        try {
-            Map<String, Object> ranking = new HashMap<>();
-            
-            // 获取学分排行榜
-            ranking.put("topUsers", accountMapper.selectTopUsersByCredits(limit));
-
-            return Result.success(ranking);
-        } catch (Exception e) {
-            logger.error("获取用户排行榜时发生异常", e);
+            logger.error("获取学分分布时发生异常", e);
             return Result.error("服务器内部错误");
         }
     }

@@ -1,7 +1,7 @@
 package org.hwadee.backend.service.serviceImpl;
 
 import org.hwadee.backend.entity.CreditApplication;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.mapper.CreditApplicationMapper;
 import org.hwadee.backend.service.CreditApplicationService;
 import org.hwadee.backend.service.CreditAccountService;
@@ -131,7 +131,7 @@ public class CreditApplicationServiceImpl implements CreditApplicationService {
 
     @Override
     @Transactional
-    public Result<String> reviewApplication(Long applicationId, Integer status, String reviewComment, Long reviewerId) {
+    public Result<String> reviewApplication(Long applicationId, Integer status, String remark, Long reviewerId) {
         try {
             if (applicationId == null) {
                 return Result.error("申请ID不能为空");
@@ -139,6 +139,8 @@ public class CreditApplicationServiceImpl implements CreditApplicationService {
             if (status == null) {
                 return Result.error("审核状态不能为空");
             }
+            
+            // 允许审核人ID为空，由系统处理
 
             // 检查申请是否存在
             CreditApplication application = applicationMapper.selectById(applicationId);
@@ -151,7 +153,7 @@ public class CreditApplicationServiceImpl implements CreditApplicationService {
                 return Result.error("申请已被审核，无法重复操作");
             }
 
-            int result = applicationMapper.updateStatus(applicationId, status, reviewComment);
+            int result = applicationMapper.updateStatus(applicationId, status, remark);
             if (result > 0) {
                 // 如果审核通过，自动增加学分到用户账户
                 if (status == 3) {
@@ -257,17 +259,49 @@ public class CreditApplicationServiceImpl implements CreditApplicationService {
             int count = applicationMapper.countAll();
             return Result.success(count);
         } catch (Exception e) {
-            return Result.error("统计申请数量失败：" + e.getMessage());
+            return Result.error("获取申请总数失败：" + e.getMessage());
         }
     }
 
     @Override
     public Result<Integer> getApplicationCountByStatus(Integer status) {
         try {
+            if (status == null) {
+                return Result.error("状态不能为空");
+            }
             int count = applicationMapper.countByStatus(status);
             return Result.success(count);
         } catch (Exception e) {
-            return Result.error("统计申请数量失败：" + e.getMessage());
+            return Result.error("获取申请统计失败：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Integer> getApplicationCountByUserId(Long userId) {
+        try {
+            if (userId == null) {
+                return Result.error("用户ID不能为空");
+            }
+            int count = applicationMapper.countByUserId(userId);
+            return Result.success(count);
+        } catch (Exception e) {
+            return Result.error("获取用户申请总数失败：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    public Result<Integer> getApplicationCountByUserIdAndStatus(Long userId, Integer status) {
+        try {
+            if (userId == null) {
+                return Result.error("用户ID不能为空");
+            }
+            if (status == null) {
+                return Result.error("状态不能为空");
+            }
+            int count = applicationMapper.countByUserIdAndStatus(userId, status);
+            return Result.success(count);
+        } catch (Exception e) {
+            return Result.error("获取用户申请统计失败：" + e.getMessage());
         }
     }
 

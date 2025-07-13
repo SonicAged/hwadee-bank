@@ -1,7 +1,7 @@
 package org.hwadee.backend.service.serviceImpl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hwadee.backend.entity.PageResult;
+import org.hwadee.backend.utils.PageResult;
 import org.hwadee.backend.entity.TrainingParticipant;
 import org.hwadee.backend.entity.TrainingProgram;
 import org.hwadee.backend.mapper.TrainingProgramMapper;

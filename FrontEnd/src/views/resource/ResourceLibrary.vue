@@ -627,6 +627,7 @@ const loadInitialData = async () => {
     popularTags.value = tagRes
   } catch (error) {
     console.error('加载初始数据失败:', error)
+    ElMessage.error('加载初始数据失败，请刷新页面重试')
   }
 }
 
@@ -649,8 +650,8 @@ const loadResources = async () => {
       size: pageSize.value,
       resourceName: searchParams.keyword,
       resourceType: searchParams.resourceType,
-      categoryId: searchParams.categoryId,
-      difficultyLevel: searchParams.difficultyLevel,
+      categoryId: searchParams.categoryId === null ? undefined : searchParams.categoryId,
+      difficultyLevel: searchParams.difficultyLevel === null ? undefined : searchParams.difficultyLevel,
       status: 1
     })
     
@@ -683,7 +684,7 @@ const loadResources = async () => {
     
     // 检查收藏状态
     await checkFavoriteStatus()
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载资源失败:', error)
     ElMessage.error('加载资源失败: ' + (error.message || String(error)))
     resources.value = []
@@ -700,12 +701,12 @@ const checkFavoriteStatus = async () => {
       try {
         const isFavorited = await resourceApi.interaction.isFavorited(resource.resourceId)
         resource.isFavorited = isFavorited
-      } catch (error) {
+      } catch (error: any) {
         resource.isFavorited = false
       }
     })
     await Promise.all(favoriteChecks)
-  } catch (error) {
+  } catch (error: any) {
     console.error('检查收藏状态失败:', error)
   }
 }
@@ -765,7 +766,7 @@ const handleFavorite = async (resource: LearningResource) => {
       resource.isFavorited = true
       ElMessage.success('收藏成功')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('收藏操作失败:', error)
     ElMessage.error('收藏操作失败')
   }
@@ -778,7 +779,7 @@ const handleUpload = async () => {
     ElMessage.success('上传成功')
     showUploadDialog.value = false
     loadResources()
-  } catch (error) {
+  } catch (error: any) {
     console.error('上传失败:', error)
     ElMessage.error('上传失败')
   }
@@ -1047,6 +1048,7 @@ const getResourceTypeColor = (type: string) => {
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }

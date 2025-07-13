@@ -59,17 +59,48 @@ export const useAuthStore = defineStore('auth', () => {
       const userInfo: any = await request.get('/auth/userinfo')
       user.value = userInfo as User
       
-      // TODO: 后续可以添加获取用户权限和角色的接口
-      // const [userPermissions, userRoles] = await Promise.all([
-      //   request.get('/auth/permissions'),
-      //   request.get('/auth/roles')
-      // ])
-      // permissions.value = userPermissions as string[]
-      // roles.value = userRoles as string[]
-      
-      // 临时设置一些默认权限
-      permissions.value = ['system', 'system:user', 'credit:account', 'credit:record', 'credit:application', 'resource:library', 'resource:category', 'course:list', 'course:training', 'audit:operation', 'audit:system']
-      roles.value = ['user']
+      // 获取用户的权限和角色
+      try {
+        const [userPermissions, userRoles] = await Promise.all([
+          request.get('/auth/permissions'),
+          request.get('/auth/roles')
+        ])
+        permissions.value = userPermissions as string[]
+        roles.value = userRoles as string[]
+      } catch (error) {
+        console.warn('获取权限和角色失败，使用默认权限', error)
+        // 临时使用硬编码权限
+        permissions.value = [
+          // 系统管理权限
+          'system', 'system:user', 'system:role', 'system:permission',
+          'system:user:query', 'system:role:query', 'system:permission:query',
+          
+          // 学分管理权限
+          'credit', 'credit:account', 'credit:record', 'credit:application',
+          'credit:account:query', 'credit:record:query', 'credit:application:query',
+          'credit:conversion', 'credit:statistics',
+          
+          // 资源管理权限
+          'resource', 'resource:library', 'resource:category',
+          'resource:library:query', 'resource:library:download',
+          'resource:category:query',
+          
+          // 课程管理权限
+          'course', 'course:list', 'course:detail', 'course:progress',
+          'course:list:query',
+          
+          // 培训项目权限
+          'training', 'training:program', 'training:program:query',
+          
+          // 日志审计权限
+          'log', 'log:operation', 'log:system',
+          
+          // 旧版菜单权限(为了兼容当前菜单)
+          'course:training',
+          'audit', 'audit:operation', 'audit:system'
+        ]
+        roles.value = ['admin']
+      }
       
     } catch (error) {
       console.error('获取用户信息失败:', error)
