@@ -81,13 +81,23 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional
     public Result<String> register(SysUser user) {
         try {
+            // 调试信息
+            System.out.println("接收到的注册信息: " + user);
+            System.out.println("原始密码: " + user.getPassword());
+            
             // 验证参数
             if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
                 return Result.error("用户名不能为空");
             }
-            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            
+            // 检查密码
+            String password = user.getPassword();
+            if (password == null || password.trim().isEmpty()) {
+                System.out.println("密码为空或仅包含空白字符");
                 return Result.error("密码不能为空");
             }
+            System.out.println("密码长度: " + password.length());
+
             if (user.getRealName() == null || user.getRealName().trim().isEmpty()) {
                 return Result.error("真实姓名不能为空");
             }
@@ -105,7 +115,10 @@ public class SysUserServiceImpl implements SysUserService {
             }
 
             // 密码加密
+            System.out.println("加密前密码: " + user.getPassword());
             user.setPassword(MD5Util.encrypt(user.getPassword()));
+            System.out.println("加密后密码: " + user.getPassword());
+            
             user.setStatus(SysUser.ENABLE); // 默认启用
             user.setCreateTime(LocalDateTime.now());
             user.setUpdateTime(LocalDateTime.now());
@@ -125,6 +138,7 @@ public class SysUserServiceImpl implements SysUserService {
                 return Result.error("注册失败");
             }
         } catch (Exception e) {
+            e.printStackTrace(); // 打印完整错误堆栈
             return Result.error("注册失败：" + e.getMessage());
         }
     }

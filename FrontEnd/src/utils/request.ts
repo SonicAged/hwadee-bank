@@ -17,6 +17,11 @@ request.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
+    // 设置请求头以确保UTF-8编码
+    if (config.headers && config.method === 'post') {
+      config.headers['Content-Type'] = 'application/json;charset=UTF-8'
+    }
+    
     // 打印请求信息，便于调试
     console.log(`[请求] ${config.method?.toUpperCase()} ${config.url}`, {
       params: config.params,
@@ -35,15 +40,21 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   response => {
-    const { code, message, data } = response.data
-    
-    // 打印响应信息，便于调试
-    console.log(`[响应] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+    // 打印完整的响应信息，便于调试
+    console.log(`[完整响应] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
       status: response.status,
-      data: response.data
+      data: response.data,
+      headers: response.headers
     })
     
-    if (code === 200) {
+    if (!response.data) {
+      return Promise.reject(new Error('返回数据为空'))
+    }
+    
+    const { code, message, data, success, error } = response.data
+    
+    if (code === 200 || success === true) {
+      // 响应成功，直接返回数据
       return data
     } else if (code === 401) {
       ElMessageBox.alert('登录已过期，请重新登录', '提示', {
@@ -53,7 +64,7 @@ request.interceptors.response.use(
           window.location.href = '/login'
         }
       })
-      return Promise.reject(new Error(message))
+      return Promise.reject(new Error(message || '认证失败，请重新登录'))
     } else {
       // 不在这里显示错误消息，让调用的地方处理
       console.error(`[响应错误] 代码: ${code}, 消息: ${message}`)

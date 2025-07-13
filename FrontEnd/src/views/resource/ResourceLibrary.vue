@@ -634,29 +634,60 @@ const loadInitialData = async () => {
 const loadResources = async () => {
   loading.value = true
   try {
-    // 使用高级搜索API而不是基础列表API，这样可以同时搜索关键词、标签等
-    const searchRequest = {
+    console.log('准备加载资源，参数:', {
       keyword: searchParams.keyword,
       resourceType: searchParams.resourceType,
-      categoryId: searchParams.categoryId || undefined,
-      difficultyLevel: searchParams.difficultyLevel || undefined,
-      minRating: searchParams.minRating || undefined,
-      tags: searchParams.tags,
+      categoryId: searchParams.categoryId,
+      difficultyLevel: searchParams.difficultyLevel,
       page: currentPage.value,
       size: pageSize.value
+    })
+    
+    // 使用基础列表API而不是高级搜索API，确保最基本的功能正常
+    const response = await resourceApi.base.getList({
+      page: currentPage.value,
+      size: pageSize.value,
+      resourceName: searchParams.keyword,
+      resourceType: searchParams.resourceType,
+      categoryId: searchParams.categoryId,
+      difficultyLevel: searchParams.difficultyLevel,
+      status: 1
+    })
+    
+    console.log('资源列表API响应:', response)
+    
+    if (response && response.list) {
+      resources.value = response.list || []
+      total.value = response.total
+      console.log('成功获取资源列表，数量:', resources.value.length)
+      
+      // 检查每个资源的数据完整性
+      resources.value.forEach((resource, index) => {
+        console.log(`资源 #${index+1}:`, {
+          id: resource.resourceId,
+          name: resource.resourceName,
+          type: resource.resourceType,
+          description: resource.description?.substring(0, 50)
+        })
+        
+        // 确保评分是数字
+        if (resource.rating === null || resource.rating === undefined) {
+          resource.rating = 0.0
+        }
+      })
+    } else {
+      console.error('API响应格式不符合预期:', response)
+      resources.value = []
+      total.value = 0
     }
-    
-    const response = await resourceApi.search.advancedSearch(searchRequest)
-    
-    console.log('返回的资源数据:', response)
-    resources.value = response.list || []
-    total.value = response.total
     
     // 检查收藏状态
     await checkFavoriteStatus()
   } catch (error) {
     console.error('加载资源失败:', error)
-    ElMessage.error('加载资源失败')
+    ElMessage.error('加载资源失败: ' + (error.message || String(error)))
+    resources.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }

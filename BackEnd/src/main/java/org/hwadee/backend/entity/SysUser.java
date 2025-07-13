@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+// import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -29,7 +29,7 @@ public class SysUser {
     /**
      * 密码(MD5加密)
      */
-    @JsonIgnore
+    // @JsonIgnore
     private String password;
 
     /**

@@ -77,12 +77,17 @@ public class AuthController {
     @PostMapping("/register")
     public Result<String> register(@RequestBody SysUser user) {
         try {
-            logger.info("收到注册请求，用户名: {}", user.getUsername());
+            logger.info("收到注册请求，用户信息: {}", user);
+            // 打印请求中的密码字段(仅用于调试)
+            logger.info("注册请求中的密码: '{}'", user.getPassword());
+            logger.info("密码长度: {}", user.getPassword() != null ? user.getPassword().length() : 0);
+            
             Result<String> result = userService.register(user);
             logger.info("注册结果: {}", result.getMessage());
             return result;
         } catch (Exception e) {
             logger.error("注册过程中发生异常", e);
+            e.printStackTrace(); // 打印完整的异常堆栈
             return Result.error("服务器内部错误: " + e.getMessage());
         }
     }
