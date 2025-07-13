@@ -137,6 +137,14 @@ public class UserController {
     }
 
     /**
+     * 获取教师列表
+     */
+    @GetMapping("/teachers")
+    public Result<List<SysUser>> getTeacherList() {
+        return userService.getTeacherList();
+    }
+
+    /**
      * 修改密码（管理员用）
      */
     @PostMapping("/{userId}/change-password")

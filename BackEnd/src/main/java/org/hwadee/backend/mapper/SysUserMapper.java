@@ -71,4 +71,6 @@ public interface SysUserMapper {
      * 根据用户ID查询用户权限
      */
     List<String> selectPermissionsByUserId(@Param("userId") Long userId);
-} 
+
+    List<SysUser> selectUserByRoleId(@Param("roleId") Long roleId);
+}

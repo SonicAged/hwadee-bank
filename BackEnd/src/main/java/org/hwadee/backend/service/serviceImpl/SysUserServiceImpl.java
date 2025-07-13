@@ -291,6 +291,12 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
+    public Result<List<SysUser>> getTeacherList() {
+        Long teacher = 2L;
+        List<SysUser> list = userMapper.selectUserByRoleId(teacher);
+        return Result.success(list);
+    }
+
     @Override
     public Result<PageResult<SysUser>> getUserListPage(String username, String realName, Integer status, int page, int size) {
         try {

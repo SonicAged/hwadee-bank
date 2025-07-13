@@ -136,7 +136,7 @@ export const resourceApi = {
     // 批量删除资源
     batchDelete(resourceIds: number[]): Promise<void> {
       return request.delete('/resources/batch', { data: resourceIds })
-    }
+    },
   },
 
   // 搜索相关
