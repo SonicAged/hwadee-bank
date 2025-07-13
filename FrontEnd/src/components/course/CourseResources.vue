@@ -86,8 +86,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { 
-  Document, VideoPlay, Picture, Files, Box, 
-  View, Download, Search 
+  Document, VideoPlay, Picture, Files,
+  View, Download
 } from '@element-plus/icons-vue'
 import type { CourseResource } from '../../types/course'
 
@@ -248,6 +248,13 @@ const viewResource = (resource: CourseResource) => {
 const downloadResource = (resource: CourseResource) => {
   ElMessage.success(`下载资源：${resource.resourceName}`)
   // 调用下载API
+}
+</script>
+
+<script lang="ts">
+// 添加默认导出以解决Vetur错误
+export default {
+  name: 'CourseResources'
 }
 </script>
 

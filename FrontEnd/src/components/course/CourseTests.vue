@@ -193,18 +193,11 @@
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Calendar, Clock, Document, Timer, Medal, 
-  Check, Close, ArrowRight, ArrowLeft 
+  Calendar, Clock, Document, Timer, Medal
 } from '@element-plus/icons-vue'
-import type { CourseTest, TestQuestion } from '@/types/course'
+import type { CourseTest } from '../../types/course'
 
-// 定义测试和问题接口
-interface TestQuestionOption {
-  value: string
-  text: string
-}
-
-// 定义props
+// 定义组件props
 const props = defineProps({
   courseId: {
     type: Number,
@@ -477,8 +470,8 @@ const stopTimer = (): void => {
 }
 
 // 查看测试回顾
-const reviewTest = (test: CourseTest): void => {
-  ElMessage.info('查看测试回顾功能开发中...')
+const reviewTest = (_test: CourseTest): void => {
+  ElMessage.info('测试回顾功能开发中')
 }
 
 // 上一题
@@ -544,6 +537,13 @@ onUnmounted(() => {
 watch(() => props.courseId, () => {
   fetchTests()
 })
+</script>
+
+<script lang="ts">
+// 添加默认导出以解决Vetur错误
+export default {
+  name: 'CourseTests'
+}
 </script>
 
 <style scoped>

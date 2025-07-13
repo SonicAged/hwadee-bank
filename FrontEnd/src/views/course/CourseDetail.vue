@@ -90,11 +90,12 @@ import CourseResources from '../../components/course/CourseResources.vue'
 import CourseLearning from '../../components/course/CourseLearning.vue'
 import CourseTests from '../../components/course/CourseTests.vue'
 import { courseApi } from '../../api/course'
+import type { Course } from '../../types/course'
 
 const route = useRoute()
 const router = useRouter()
 const courseId = ref(Number(route.params.id))
-const course = ref({
+const course = ref<Course>({
   courseId: 0,
   courseName: '',
   courseCode: '',
