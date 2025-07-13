@@ -29,10 +29,10 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (loginData: LoginData) => {
     try {
       const response = await request.post('/auth/login', loginData)
-      const tokenString = (response as unknown) as string
+      const tokenString = (response.token as unknown) as string
       token.value = tokenString
       localStorage.setItem('token', tokenString)
-      
+
       // 获取用户信息
       await getUserInfo()
       

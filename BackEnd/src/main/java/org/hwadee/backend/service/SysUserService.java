@@ -1,5 +1,6 @@
 package org.hwadee.backend.service;
 
+import org.hwadee.backend.entity.LoginResponse;
 import org.hwadee.backend.entity.SysUser;
 import org.hwadee.backend.entity.LoginDTO;
 import org.hwadee.backend.entity.UpdateProfileDTO;
@@ -15,7 +16,7 @@ public interface SysUserService {
     /**
      * 用户登录
      */
-    Result<String> login(LoginDTO loginDTO);
+    Result<LoginResponse> login(LoginDTO loginDTO);
 
     /**
      * 用户注册

@@ -21,7 +21,7 @@
 
     <!-- 基础列 -->
     <sql id="Base_Column_List">
-        user_id, username, password, real_name, email, phone, avatar, gender, 
+        user_id, username, password, real_name, email, phone, avatar, gender,
         birth_date, status, last_login_time, create_time, update_time
     </sql>
 

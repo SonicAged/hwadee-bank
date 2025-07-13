@@ -100,4 +100,9 @@ public interface CourseService {
      * 获取已报名课程
      */
     List<Map<String, Object>> getEnrolledCourses(Long userId);
-} 
+
+    /**
+     * 判断用户是否报名
+     */
+    Boolean checkUserInCourse(Long courseId, Long userId);
+}
