@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.hwadee.backend.mapper.TrainingProgramMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="programMap" type="org.hwadee.backend.entity.TrainingProgram">
+        <id column="program_id" property="programId"/>
+        <result column="program_name" property="programName"/>
+        <result column="program_code" property="programCode"/>
+        <result column="program_type" property="programType"/>
+        <result column="manager_id" property="managerId"/>
+        <result column="description" property="description"/>
+        <result column="content" property="content"/>
+        <result column="credit_value" property="creditValue"/>
+        <result column="cost" property="cost"/>
+        <result column="max_participants" property="maxParticipants"/>
+        <result column="current_participants" property="currentParticipants"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="location" property="location"/>
+        <result column="status" property="status"/>
+        <result column="enroll_deadline" property="enrollDeadline"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <resultMap id="participantMap" type="org.hwadee.backend.entity.TrainingParticipant">
+        <id column="id" property="id"/>
+        <result column="program_id" property="programId"/>
+        <result column="user_id" property="userId"/>
+        <result column="status" property="status"/>
+        <result column="enroll_time" property="enrollTime"/>
+        <result column="confirm_time" property="confirmTime"/>
+        <result column="complete_time" property="completeTime"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 基础列 -->
+    <sql id="baseProgramColumns">
+        program_id, program_name, program_code, program_type, manager_id,
+        description, content, credit_value, cost, max_participants, 
+        current_participants, start_time, end_time, location, status, enroll_deadline,
+        create_time, update_time
+    </sql>
+
+    <!-- 查询培训项目列表 -->
+    <select id="selectProgramList" resultMap="programMap">
+        SELECT
+        <include refid="baseProgramColumns"/>
+        FROM training_program
+        <where>
+            <if test="programName != null and programName != ''">
+                AND program_name LIKE CONCAT('%', #{programName}, '%')
+            </if>
+            <if test="programType != null">
+                AND program_type = #{programType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计培训项目总数 -->
+    <select id="countPrograms" resultType="int">
+        SELECT COUNT(1) FROM training_program
+        <where>
+            <if test="programName != null and programName != ''">
+                AND program_name LIKE CONCAT('%', #{programName}, '%')
+            </if>
+            <if test="programType != null">
+                AND program_type = #{programType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据ID查询培训项目 -->
+    <select id="selectProgramById" resultMap="programMap">
+        SELECT
+        <include refid="baseProgramColumns"/>
+        FROM training_program
+        WHERE program_id = #{programId}
+    </select>
+
+    <!-- 创建培训项目 -->
+    <insert id="insertProgram" useGeneratedKeys="true" keyProperty="programId">
+        INSERT INTO training_program (
+            program_name, program_code, program_type, manager_id,
+            description, content, credit_value, cost, max_participants,
+            current_participants, start_time, end_time, location, status, enroll_deadline,
+            create_time, update_time
+        )
+        VALUES (
+            #{programName}, #{programCode}, #{programType}, #{managerId},
+            #{description}, #{content}, #{creditValue}, #{cost}, #{maxParticipants},
+            #{currentParticipants}, #{startTime}, #{endTime}, #{location}, #{status}, #{enrollDeadline},
+            now(), now()
+        )
+    </insert>
+
+    <!-- 更新培训项目 -->
+    <update id="updateProgram">
+        UPDATE training_program
+        <set>
+            <if test="programName != null">program_name = #{programName},</if>
+            <if test="programCode != null">program_code = #{programCode},</if>
+            <if test="programType != null">program_type = #{programType},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="creditValue != null">credit_value = #{creditValue},</if>
+            <if test="cost != null">cost = #{cost},</if>
+            <if test="maxParticipants != null">max_participants = #{maxParticipants},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="enrollDeadline != null">enroll_deadline = #{enrollDeadline},</if>
+            update_time = now()
+        </set>
+        WHERE program_id = #{programId}
+    </update>
+
+    <!-- 删除培训项目 -->
+    <delete id="deleteProgram">
+        DELETE FROM training_program WHERE program_id = #{programId}
+    </delete>
+
+    <!-- 添加培训参与者 -->
+    <insert id="insertParticipant" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO training_participant (
+            program_id, user_id, status, enroll_time, create_time, update_time
+        )
+        VALUES (
+            #{programId}, #{userId}, #{status}, now(), now(), now()
+        )
+    </insert>
+
+    <!-- 更新参与者状态 -->
+    <update id="updateParticipantStatus">
+        UPDATE training_participant
+        <set>
+            status = #{status},
+            <if test="status == 1">confirm_time = now(),</if>
+            <if test="status == 2">complete_time = now(),</if>
+            update_time = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询用户参与的培训项目 -->
+    <select id="selectUserPrograms" resultType="map">
+        SELECT
+            p.program_id, p.program_name, p.program_code, p.program_type, 
+            p.credit_value, p.cost, p.max_participants, p.current_participants,
+            p.start_time, p.end_time, p.location, p.status,
+            tp.id as participant_id, tp.status as participant_status,
+            tp.enroll_time, tp.confirm_time, tp.complete_time
+        FROM
+            training_program p
+        JOIN
+            training_participant tp ON p.program_id = tp.program_id
+        WHERE
+            tp.user_id = #{userId}
+            <if test="status != null">
+                AND tp.status = #{status}
+            </if>
+        ORDER BY
+            tp.create_time DESC
+        LIMIT
+            #{offset}, #{limit}
+    </select>
+
+    <!-- 统计用户参与的培训项目总数 -->
+    <select id="countUserPrograms" resultType="int">
+        SELECT COUNT(1)
+        FROM training_participant
+        WHERE user_id = #{userId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 查询培训项目参与者列表 -->
+    <select id="selectProgramParticipants" resultType="map">
+        SELECT
+            tp.id, tp.program_id, tp.user_id, tp.status,
+            tp.enroll_time, tp.confirm_time, tp.complete_time,
+            tp.remark, tp.create_time, tp.update_time,
+            u.username, u.nickname, u.email, u.mobile, u.avatar
+        FROM
+            training_participant tp
+        JOIN
+            sys_user u ON tp.user_id = u.user_id
+        WHERE
+            tp.program_id = #{programId}
+            <if test="status != null">
+                AND tp.status = #{status}
+            </if>
+        ORDER BY
+            tp.create_time DESC
+        LIMIT
+            #{offset}, #{limit}
+    </select>
+
+    <!-- 统计培训项目参与者总数 -->
+    <select id="countProgramParticipants" resultType="int">
+        SELECT COUNT(1)
+        FROM training_participant
+        WHERE program_id = #{programId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 检查用户是否已经参与培训项目 -->
+    <select id="checkUserInProgram" resultType="Integer">
+        SELECT status
+        FROM training_participant
+        WHERE program_id = #{programId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <!-- 根据项目ID和用户ID查询参与记录 -->
+    <select id="selectParticipant" resultMap="participantMap">
+        SELECT *
+        FROM training_participant
+        WHERE program_id = #{programId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <!-- 更新培训项目参与人数 -->
+    <update id="updateParticipantCount">
+        UPDATE training_program
+        SET current_participants = (
+            SELECT COUNT(1) 
+            FROM training_participant 
+            WHERE program_id = #{programId} AND status IN (0, 1, 2)
+        ),
+        update_time = now()
+        WHERE program_id = #{programId}
+    </update>
+</mapper> 

@@ -16,6 +16,14 @@ request.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // 打印请求信息，便于调试
+    console.log(`[请求] ${config.method?.toUpperCase()} ${config.url}`, {
+      params: config.params,
+      data: config.data,
+      headers: config.headers
+    })
+    
     return config
   },
   error => {
@@ -29,6 +37,12 @@ request.interceptors.response.use(
   response => {
     const { code, message, data } = response.data
     
+    // 打印响应信息，便于调试
+    console.log(`[响应] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+      status: response.status,
+      data: response.data
+    })
+    
     if (code === 200) {
       return data
     } else if (code === 401) {
@@ -41,8 +55,9 @@ request.interceptors.response.use(
       })
       return Promise.reject(new Error(message))
     } else {
-      ElMessage.error(message || '请求失败')
-      return Promise.reject(new Error(message))
+      // 不在这里显示错误消息，让调用的地方处理
+      console.error(`[响应错误] 代码: ${code}, 消息: ${message}`)
+      return Promise.reject(new Error(message || '请求失败'))
     }
   },
   error => {
@@ -50,6 +65,14 @@ request.interceptors.response.use(
     
     if (error.response) {
       const { status, data } = error.response
+      
+      // 打印详细错误信息
+      console.error(`[HTTP错误] 状态: ${status}`, {
+        url: error.config?.url,
+        method: error.config?.method?.toUpperCase(),
+        data: error.config?.data,
+        response: data
+      })
       
       switch (status) {
         case 401:
@@ -64,14 +87,24 @@ request.interceptors.response.use(
           ElMessage.error('请求的资源不存在')
           break
         case 500:
-          ElMessage.error('服务器内部错误')
+          // 不在这里显示错误消息，让调用的地方处理
+          if (data && data.message) {
+            return Promise.reject(new Error(data.message))
+          }
           break
         default:
-          ElMessage.error(data?.message || '网络错误')
+          if (data && data.message) {
+            return Promise.reject(new Error(data.message))
+          }
       }
     } else if (error.request) {
+      console.error('[网络错误] 没有收到响应', {
+        url: error.config?.url,
+        method: error.config?.method?.toUpperCase()
+      })
       ElMessage.error('网络连接失败')
     } else {
+      console.error('[请求配置错误]', error.message)
       ElMessage.error('请求配置错误')
     }
     

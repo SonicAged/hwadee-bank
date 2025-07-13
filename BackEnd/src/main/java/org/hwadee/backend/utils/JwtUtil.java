@@ -9,6 +9,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 /**
@@ -94,5 +95,20 @@ public class JwtUtil {
         } catch (JWTVerificationException e) {
             return true;
         }
+    }
+    
+    /**
+     * 从请求中获取用户ID
+     */
+    public Long getUserIdFromRequest(HttpServletRequest request) {
+        // 从请求头中获取令牌
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            // 去掉Bearer前缀
+            token = token.substring(7);
+            // 从令牌中获取用户ID
+            return getUserIdFromToken(token);
+        }
+        return null;
     }
 } 

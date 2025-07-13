@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <el-aside :width="isCollapse ? '64px' : '240px'" class="sidebar">
       <div class="logo-container">
-        <img v-if="!isCollapse" src="../assets/logo.svg" alt="Logo" class="logo" />
+        <img v-if="!isCollapse" src="../assets/logo.png" alt="Logo" class="logo" />
         <span v-if="!isCollapse" class="logo-text">学分银行</span>
       </div>
       
