@@ -88,4 +88,6 @@ public interface SysUserService {
      * 获取用户角色
      */
     Result<List<String>> getUserRoles(Long userId);
+
+    Result<List<SysUser>> getTeacherList();
 } 
