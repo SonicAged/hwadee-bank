@@ -139,3 +139,7 @@ FROM sys_role_permission WHERE role_id = 2;
 
 SELECT '学生角色权限数量：' AS role_name, COUNT(*) AS permission_count 
 FROM sys_role_permission WHERE role_id = 3; 
+
+INSERT INTO sys_permission (permission_name, permission_key, permission_type, parent_id, path, component, icon, sort_order, status, create_time) VALUES ('学分转换', 'credit:conversion', 2, 5, '/credit/conversion', 'credit/CreditConversion', 'RefreshRight', 4, 1, NOW()), ('统计概览', 'credit:statistics', 2, 5, '/credit/statistics', 'credit/CreditStatistics', 'PieChart', 5, 1, NOW()), ('培训项目', 'course:training', 2, 12, '/course/training', 'course/TrainingProgram', 'School', 2, 1, NOW());"
+
+INSERT INTO sys_role_permission (role_id, permission_id) SELECT 1, permission_id FROM sys_permission WHERE permission_key IN ('credit:conversion', 'credit:statistics', 'course:training'); INSERT INTO sys_role_permission (role_id, permission_id) SELECT 2, permission_id FROM sys_permission WHERE permission_key IN ('credit:conversion', 'credit:statistics', 'course:training'); INSERT INTO sys_role_permission (role_id, permission_id) SELECT 3, permission_id FROM sys_permission WHERE permission_key = 'course:training';"
