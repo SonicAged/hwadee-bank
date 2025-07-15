@@ -9,7 +9,7 @@
       </template>
 
       <!-- 搜索表单 -->
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form :inline="true" :model="searchForm" class="search-form wide-search">
         <el-form-item label="课程名称">
           <el-input v-model="searchForm.courseName" placeholder="请输入课程名称" clearable />
         </el-form-item>
@@ -18,9 +18,9 @@
             v-model="searchForm.status" 
             placeholder="请选择状态" 
             clearable
-            class="search-status-select"
+            class="search-status-select wide-select"
             @change="handleSearch"
-            popper-class="status-select-popper"
+            popper-class="status-select-popper wide-dropdown"
           >
             <el-option label="关闭" :value="0" />
             <el-option label="开放" :value="1" />
@@ -83,7 +83,7 @@
           <el-input v-model="formData.courseCode" />
         </el-form-item>
         <el-form-item label="分类" prop="categoryId">
-          <el-select v-model="formData.categoryId" placeholder="请选择分类">
+          <el-select v-model="formData.categoryId" placeholder="请选择分类" class="wide-select" popper-class="wide-dropdown">
             <el-option
               v-for="category in categories"
               :key="category.categoryId"
@@ -93,7 +93,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="授课教师" prop="instructorId">
-          <el-select v-model="formData.instructorId" placeholder="请选择教师">
+          <el-select v-model="formData.instructorId" placeholder="请选择教师" class="wide-select" popper-class="wide-dropdown">
             <el-option
               v-for="teacher in teachers"
               :key="teacher.userId"
@@ -475,7 +475,11 @@ onMounted(() => {
 }
 
 .search-status-select {
-  width: 120px;
+  width: 150px !important;
+}
+
+.wide-search .el-select {
+  min-width: 150px !important;
 }
 
 .search-status-select .el-input__inner {

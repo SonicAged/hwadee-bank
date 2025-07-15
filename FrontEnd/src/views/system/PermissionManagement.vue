@@ -16,14 +16,14 @@
           <el-input v-model="queryParams.permissionName" placeholder="请输入权限名称" clearable />
         </el-form-item>
         <el-form-item label="权限类型" prop="permissionType">
-          <el-select v-model="queryParams.permissionType" placeholder="请选择权限类型" clearable>
+                      <el-select v-model="queryParams.permissionType" placeholder="请选择权限类型" clearable class="wide-select" popper-class="wide-dropdown">
             <el-option :value="1" label="目录"></el-option>
             <el-option :value="2" label="菜单"></el-option>
             <el-option :value="3" label="按钮"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+                      <el-select v-model="queryParams.status" placeholder="请选择状态" clearable class="wide-select" popper-class="wide-dropdown">
             <el-option :value="1" label="启用"></el-option>
             <el-option :value="0" label="禁用"></el-option>
           </el-select>

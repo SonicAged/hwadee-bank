@@ -16,6 +16,8 @@
                 v-model="conversionForm.sourceType" 
                 placeholder="请选择源学分类型"
                 @change="onSourceTypeChange"
+                class="wide-select"
+                popper-class="wide-dropdown"
               >
                 <el-option label="学历教育" value="学历教育" />
                 <el-option label="职业培训" value="职业培训" />
@@ -30,6 +32,8 @@
                 v-model="conversionForm.targetType" 
                 placeholder="请选择目标学分类型"
                 @change="onTargetTypeChange"
+                class="wide-select"
+                popper-class="wide-dropdown"
               >
                 <el-option label="学历教育" value="学历教育" />
                 <el-option label="职业培训" value="职业培训" />

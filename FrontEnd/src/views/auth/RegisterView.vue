@@ -19,6 +19,7 @@
             size="large"
             prefix-icon="User"
             clearable
+            style="width: 100%"
           />
         </el-form-item>
         
@@ -29,6 +30,7 @@
             size="large"
             prefix-icon="UserFilled"
             clearable
+            style="width: 100%"
           />
         </el-form-item>
         
@@ -38,6 +40,7 @@
             placeholder="请输入邮箱地址"
             size="large"
             prefix-icon="Message"
+            style="width: 100%"
             clearable
           />
         </el-form-item>
@@ -48,6 +51,7 @@
             placeholder="请输入手机号码"
             size="large"
             prefix-icon="Phone"
+            style="width: 100%"
             clearable
           />
         </el-form-item>
@@ -60,6 +64,7 @@
             size="large"
             prefix-icon="Lock"
             show-password
+            style="width: 100%"
             clearable
           />
         </el-form-item>
@@ -72,6 +77,7 @@
             size="large"
             prefix-icon="Lock"
             show-password
+            style="width: 100%"
             clearable
           />
         </el-form-item>
@@ -254,12 +260,17 @@ const handleRegister = async () => {
   margin-bottom: 20px;
 }
 
-.register-form :deep(.el-input__wrapper) {
+.register-form :deep(.el-input__wrapper),
+.register-form :deep(.el-select .el-input__wrapper) {
   border-radius: 8px;
   padding: 12px 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
   transition: all 0.3s ease;
+}
+
+.register-form :deep(.el-select) {
+  width: 100% !important;
 }
 
 .register-form :deep(.el-input__wrapper:hover) {

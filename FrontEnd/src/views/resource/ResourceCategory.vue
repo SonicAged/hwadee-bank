@@ -105,7 +105,7 @@
           <el-input v-model="form.categoryName" placeholder="请输入分类名称" />
         </el-form-item>
         <el-form-item label="父级分类" prop="parentId">
-          <el-select v-model="form.parentId" placeholder="请选择父级分类" clearable>
+          <el-select v-model="form.parentId" placeholder="请选择父级分类" clearable class="wide-select" popper-class="wide-dropdown">
             <el-option label="顶级分类" :value="0" />
             <el-option
               v-for="item in flatCategories"

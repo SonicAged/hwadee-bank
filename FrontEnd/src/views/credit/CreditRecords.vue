@@ -9,7 +9,7 @@
       </template>
       
       <!-- 筛选条件 -->
-      <div class="filter-bar">
+      <div class="filter-bar search-form">
         <el-form :model="filterForm" :inline="true">
         <el-form-item label="学分类型">
           <el-select
@@ -17,10 +17,14 @@
             placeholder="请选择类型"
             clearable
             @change="handleSearch"
-            class="custom-select"
-            popper-class="custom-popper"
+            class="custom-select wide-select"
+            popper-class="custom-popper wide-dropdown"
           >
-          <!-- 选项内容保持不变 -->
+            <el-option label="学习学分" value="学习学分" />
+            <el-option label="培训学分" value="培训学分" />
+            <el-option label="考核学分" value="考核学分" />
+            <el-option label="项目学分" value="项目学分" />
+            <el-option label="参与学分" value="参与学分" />
           </el-select>
         </el-form-item>
         <el-form-item label="操作类型">
@@ -29,10 +33,12 @@
             placeholder="请选择操作类型"
             clearable
             @change="handleSearch"
-            class="custom-select"
-            popper-class="custom-popper"
+            class="custom-select wide-select"
+            popper-class="custom-popper wide-dropdown"
           >
-            <!-- 选项内容保持不变 -->
+            <el-option :label="'获得'" :value="1" />
+            <el-option :label="'消费'" :value="2" />
+            <el-option :label="'转换'" :value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -41,10 +47,12 @@
             placeholder="请选择状态"
             clearable
             @change="handleSearch"
-            class="custom-select"
-            popper-class="custom-popper"
+            class="custom-select wide-select"
+            popper-class="custom-popper wide-dropdown"
           >
-            <!-- 选项内容保持不变 -->
+            <el-option :label="'无效'" :value="0" />
+            <el-option :label="'有效'" :value="1" />
+            <el-option :label="'待审核'" :value="2" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -285,6 +293,11 @@ onMounted(async () => {
   padding: 16px;
   background: #f8f9fa;
   border-radius: 8px;
+}
+
+/* 确保选择框宽度足够 */
+.filter-bar .el-select {
+  width: 150px !important; 
 }
 
 .pagination {

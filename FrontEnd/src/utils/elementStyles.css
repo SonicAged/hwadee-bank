@@ -1,0 +1,78 @@
+/* ElementPlus下拉菜单样式覆盖 */
+
+/* 下拉选项允许文本换行和自动高度 */
+.el-select-dropdown__item {
+  min-width: 150px !important;
+  white-space: normal !important;
+  height: auto !important;
+  min-height: 34px !important;
+  padding: 8px 12px !important;
+  line-height: 1.5 !important;
+  word-break: break-word !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  text-align: left !important;
+}
+
+/* 移除下拉菜单的高度限制 */
+.el-select-dropdown__wrap {
+  max-height: 400px !important; /* 设置较大值而不是none */
+}
+
+/* 确保下拉菜单可以撑开 */
+.el-popper.is-light.el-select__popper {
+  max-width: none !important;
+  min-width: 150px !important;
+}
+
+/* 下拉菜单容器宽度 */
+.el-select-dropdown {
+  min-width: 150px !important;
+}
+
+/* 搜索选择框本身的宽度 */
+.el-select {
+  width: 150px !important;
+}
+
+/* 自定义宽度类 */
+.wide-select {
+  width: 170px !important;
+}
+
+.wider-select {
+  width: 200px !important;
+}
+
+/* 登录和注册页面的选择框恢复原有样式 - 使用更高优先级 */
+html body .register-form .el-select,
+html body .login-form .el-select,
+html body .register-container .el-select,
+html body .login-container .el-select {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+}
+
+html body .register-form .el-select .el-input,
+html body .login-form .el-select .el-input {
+  width: 100% !important;
+}
+
+html body .register-container .el-select__popper,
+html body .login-container .el-select__popper,
+html body .register-container .el-select-dropdown,
+html body .login-container .el-select-dropdown {
+  min-width: auto !important;
+  width: auto !important;
+}
+
+html body .register-container .el-select-dropdown__item,
+html body .login-container .el-select-dropdown__item {
+  min-width: 100% !important;
+  white-space: nowrap !important;
+  height: 34px !important;
+  padding: 0 20px !important;
+  line-height: 34px !important;
+  display: block !important;
+} 

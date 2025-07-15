@@ -20,6 +20,7 @@
             size="large"
             prefix-icon="User"
             clearable
+            style="width: 100%"
           />
         </el-form-item>
         
@@ -31,6 +32,7 @@
             size="large"
             prefix-icon="Lock"
             show-password
+            style="width: 100%"
             clearable
           />
         </el-form-item>

@@ -1,7 +1,7 @@
 <template>
   <div class="resource-library">
     <!-- 搜索和筛选区域 -->
-    <el-card class="search-card">
+    <el-card class="search-card search-form">
       <div class="search-form">
         <el-row :gutter="20">
           <el-col :span="8">
@@ -25,6 +25,8 @@
               placeholder="资源类型"
               clearable
               @change="handleSearch"
+              class="wide-select"
+              popper-class="wide-dropdown"
             >
               <el-option label="全部" value="" />
               <el-option label="课程" value="课程" />
@@ -40,6 +42,8 @@
               placeholder="选择分类"
               clearable
               @change="handleSearch"
+              class="wide-select"
+              popper-class="wide-dropdown"
             >
               <el-option label="全部" :value="null" />
               <el-option
@@ -56,6 +60,8 @@
               placeholder="难度级别"
               clearable
               @change="handleSearch"
+              class="wide-select"
+              popper-class="wide-dropdown"
             >
               <el-option label="全部" value="" />
               <el-option label="初级" :value="1" />
@@ -280,7 +286,7 @@
           <el-input v-model="advancedSearchForm.keyword" placeholder="搜索关键词" />
         </el-form-item>
         <el-form-item label="资源类型">
-          <el-select v-model="advancedSearchForm.resourceType" placeholder="选择资源类型">
+          <el-select v-model="advancedSearchForm.resourceType" placeholder="选择资源类型" class="wide-select" popper-class="wide-dropdown">
             <el-option label="全部" value="" />
             <el-option label="课程" value="课程" />
             <el-option label="教材" value="教材" />
@@ -289,7 +295,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="分类">
-          <el-select v-model="advancedSearchForm.categoryId" placeholder="选择分类">
+          <el-select v-model="advancedSearchForm.categoryId" placeholder="选择分类" class="wide-select" popper-class="wide-dropdown">
             <el-option
               v-for="category in categories"
               :key="category.categoryId"
@@ -299,7 +305,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="难度级别">
-          <el-select v-model="advancedSearchForm.difficultyLevel" placeholder="选择难度">
+          <el-select v-model="advancedSearchForm.difficultyLevel" placeholder="选择难度" class="wide-select" popper-class="wide-dropdown">
             <el-option label="全部" value="" />
             <el-option label="初级" :value="1" />
             <el-option label="中级" :value="2" />

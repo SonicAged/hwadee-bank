@@ -20,7 +20,7 @@
             <el-input v-model="searchForm.realName" placeholder="请输入真实姓名" clearable />
           </el-form-item>
           <el-form-item label="状态">
-            <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+            <el-select v-model="searchForm.status" placeholder="请选择状态" clearable class="wide-select" popper-class="wide-dropdown">
               <el-option label="启用" :value="1" />
               <el-option label="禁用" :value="0" />
             </el-select>
@@ -104,7 +104,7 @@
           <el-input v-model="userForm.phone" placeholder="请输入手机号" />
         </el-form-item>
         <el-form-item label="性别" prop="gender">
-          <el-select v-model="userForm.gender" placeholder="请选择性别">
+          <el-select v-model="userForm.gender" placeholder="请选择性别" class="wide-select" popper-class="wide-dropdown">
             <el-option label="男" :value="1" />
             <el-option label="女" :value="2" />
             <el-option label="未知" :value="0" />

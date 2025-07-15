@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import applyAllOverrides from './utils/styleOverrides'
+
+  // 在应用挂载后应用样式覆盖
+onMounted(() => {
+  // 延迟一点执行，确保ElementPlus已完全加载
+  setTimeout(() => {
+    applyAllOverrides()
+    // 增加CSS变量覆盖
+    document.documentElement.style.setProperty('--el-select-input-width', '150px')
+  }, 100)
+})
 </script>
 
 <template>

@@ -59,8 +59,31 @@ html, body {
   margin-bottom: 22px;
 }
 
+/* 输入框和选择器样式优化 */
 .el-input, .el-select {
   border-radius: 6px;
+  width: auto;
+  min-width: 150px;
+}
+
+/* 设置表单项的最小宽度 */
+.el-form-item--small {
+  min-width: 150px;
+}
+
+.el-form-item--medium {
+  min-width: 170px;
+}
+
+.el-form-item--large {
+  min-width: 200px;
+}
+
+/* 搜索表单和筛选表单中的选择器加宽 */
+.search-form .el-select,
+.filter-bar .el-select,
+.el-form--inline .el-select {
+  width: 150px !important;
 }
 
 /* 按钮样式优化 */

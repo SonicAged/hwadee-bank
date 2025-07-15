@@ -9,10 +9,10 @@
       </template>
       
       <!-- 筛选条件 -->
-      <div class="filter-bar">
+      <div class="filter-bar search-form">
         <el-form :model="filterForm" :inline="true">
           <el-form-item label="申请状态">
-            <el-select v-model="filterForm.status" placeholder="请选择状态" clearable @change="handleSearch">
+            <el-select v-model="filterForm.status" placeholder="请选择状态" clearable @change="handleSearch" class="wide-select" popper-class="wide-dropdown">
               <el-option label="待审核" :value="1" />
               <el-option label="已通过" :value="3" />
               <el-option label="已拒绝" :value="4" />
@@ -92,7 +92,7 @@
         label-width="100px"
       >
         <el-form-item label="申请类型" prop="creditType">
-          <el-select v-model="submitForm.creditType" placeholder="请选择申请类型">
+          <el-select v-model="submitForm.creditType" placeholder="请选择申请类型" class="wide-select" popper-class="wide-dropdown">
             <el-option label="学历教育" value="学历教育" />
             <el-option label="职业培训" value="职业培训" />
             <el-option label="技能证书" value="技能证书" />
