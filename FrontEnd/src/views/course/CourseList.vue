@@ -14,7 +14,14 @@
           <el-input v-model="searchForm.courseName" placeholder="请输入课程名称" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select 
+            v-model="searchForm.status" 
+            placeholder="请选择状态" 
+            clearable
+            class="search-status-select"
+            @change="handleSearch"
+            popper-class="status-select-popper"
+          >
             <el-option label="关闭" :value="0" />
             <el-option label="开放" :value="1" />
             <el-option label="满员" :value="2" />
@@ -465,5 +472,24 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 20px;
+}
+
+.search-status-select {
+  width: 120px;
+}
+
+.search-status-select .el-input__inner {
+  padding: 8px 15px;
+  font-size: 14px;
+}
+
+.status-select-popper {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.status-select-popper .el-select-dropdown__item {
+  padding: 8px 20px;
+  line-height: 24px;
 }
 </style>
