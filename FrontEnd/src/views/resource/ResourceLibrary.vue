@@ -219,7 +219,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="creditValue" label="学分" width="80" />
-          <el-table-column prop="rating" label="评分" width="80">
+          <el-table-column prop="rating" label="评分" width="170">
             <template #default="{ row }">
               <el-rate 
                 :model-value="row.rating" 
@@ -668,18 +668,32 @@ const loadResources = async () => {
       total.value = response.total
       console.log('成功获取资源列表，数量:', resources.value.length)
       
-      // 检查每个资源的数据完整性
+      // 确保资源数据的完整性
       resources.value.forEach((resource, index) => {
         console.log(`资源 #${index+1}:`, {
           id: resource.resourceId,
           name: resource.resourceName,
           type: resource.resourceType,
+          rating: resource.rating,
           description: resource.description?.substring(0, 50)
         })
         
-        // 确保评分是数字
+        // 确保评分是数字且有正确格式
         if (resource.rating === null || resource.rating === undefined) {
           resource.rating = 0.0
+        } else if (typeof resource.rating === 'string') {
+          // 如果评分是字符串，转为数字
+          resource.rating = parseFloat(resource.rating)
+        }
+        
+        // 确保ratingCount存在
+        if (resource.ratingCount === undefined || resource.ratingCount === null) {
+          resource.ratingCount = 0
+        }
+        
+        // 确保tags存在
+        if (!resource.tags) {
+          resource.tags = ''
         }
       })
     } else {
@@ -727,7 +741,80 @@ const handleSearch = () => {
 const handleAdvancedSearch = () => {
   Object.assign(searchParams, advancedSearchForm)
   showAdvancedSearch.value = false
-  handleSearch()
+  currentPage.value = 1
+  
+  // 使用高级搜索API而非基本搜索API
+  advancedSearchResources()
+}
+
+// 添加高级搜索资源方法
+const advancedSearchResources = async () => {
+  loading.value = true
+  try {
+    console.log('执行高级搜索，参数:', {
+      keyword: searchParams.keyword,
+      resourceType: searchParams.resourceType,
+      categoryId: searchParams.categoryId,
+      difficultyLevel: searchParams.difficultyLevel,
+      minRating: searchParams.minRating,
+      tags: searchParams.tags,
+      page: currentPage.value,
+      size: pageSize.value
+    })
+    
+    const response = await resourceApi.search.advancedSearch({
+      keyword: searchParams.keyword,
+      resourceType: searchParams.resourceType,
+      categoryId: searchParams.categoryId === null ? undefined : searchParams.categoryId,
+      difficultyLevel: searchParams.difficultyLevel === null ? undefined : searchParams.difficultyLevel,
+      minRating: searchParams.minRating,
+      tags: searchParams.tags,
+      page: currentPage.value,
+      size: pageSize.value
+    })
+    
+    console.log('高级搜索响应:', response)
+    
+    if (response && response.list) {
+      resources.value = response.list || []
+      total.value = response.total
+      console.log('成功获取资源列表，数量:', resources.value.length)
+      
+      // 确保资源数据的完整性
+      resources.value.forEach((resource, index) => {
+        // 确保评分是数字且有正确格式
+        if (resource.rating === null || resource.rating === undefined) {
+          resource.rating = 0.0
+        } else if (typeof resource.rating === 'string') {
+          // 如果评分是字符串，转为数字
+          resource.rating = parseFloat(resource.rating)
+        }
+        
+        // 确保ratingCount存在
+        if (resource.ratingCount === undefined || resource.ratingCount === null) {
+          resource.ratingCount = 0
+        }
+        
+        // 确保tags存在
+        if (!resource.tags) {
+          resource.tags = ''
+        }
+      })
+      
+      await checkFavoriteStatus()
+    } else {
+      console.error('高级搜索响应格式不符合预期:', response)
+      resources.value = []
+      total.value = 0
+    }
+  } catch (error: any) {
+    console.error('高级搜索失败:', error)
+    ElMessage.error('高级搜索失败: ' + (error.message || String(error)))
+    resources.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
 }
 
 // 标签点击处理
@@ -735,7 +822,70 @@ const handleTagClick = (tagName: string) => {
   // 清空之前的搜索参数
   searchParams.keyword = ''
   searchParams.tags = tagName
-  handleSearch()
+  
+  // 使用高级搜索API而非基本搜索API
+  currentPage.value = 1
+  advancedSearchWithTags()
+}
+
+// 添加高级搜索标签方法
+const advancedSearchWithTags = async () => {
+  loading.value = true
+  try {
+    console.log('执行标签搜索，参数:', {
+      tags: searchParams.tags,
+      page: currentPage.value,
+      size: pageSize.value
+    })
+    
+    const response = await resourceApi.search.advancedSearch({
+      tags: searchParams.tags,
+      page: currentPage.value,
+      size: pageSize.value
+    })
+    
+    console.log('标签搜索响应:', response)
+    
+    if (response && response.list) {
+      resources.value = response.list || []
+      total.value = response.total
+      console.log('成功获取资源列表，数量:', resources.value.length)
+      
+      // 确保资源数据的完整性
+      resources.value.forEach((resource, index) => {
+        // 确保评分是数字且有正确格式
+        if (resource.rating === null || resource.rating === undefined) {
+          resource.rating = 0.0
+        } else if (typeof resource.rating === 'string') {
+          // 如果评分是字符串，转为数字
+          resource.rating = parseFloat(resource.rating)
+        }
+        
+        // 确保ratingCount存在
+        if (resource.ratingCount === undefined || resource.ratingCount === null) {
+          resource.ratingCount = 0
+        }
+        
+        // 确保tags存在
+        if (!resource.tags) {
+          resource.tags = ''
+        }
+      })
+      
+      await checkFavoriteStatus()
+    } else {
+      console.error('标签搜索响应格式不符合预期:', response)
+      resources.value = []
+      total.value = 0
+    }
+  } catch (error: any) {
+    console.error('标签搜索失败:', error)
+    ElMessage.error('标签搜索失败: ' + (error.message || String(error)))
+    resources.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
 }
 
 // 分页处理
@@ -808,21 +958,54 @@ const handleEditResource = async (resource: LearningResource) => {
   editForm.rating = resource.rating
   editForm.ratingCount = resource.ratingCount
   
+  // 重置当前评分和评论
+  currentRating.value = 0
+  ratingComment.value = ''
+  
   // 获取当前用户对资源的评分
   try {
-    const response = await resourceApi.interaction.getUserReview(resource.resourceId, currentUserId.value)
-    userReview.value = response.data
-    if (userReview.value) {
-      currentRating.value = userReview.value.rating
-      ratingComment.value = userReview.value.reviewContent || ''
+    // 从本地存储或状态管理库中获取用户ID
+    // 这里示例从localStorage获取，实际项目应该从认证状态中获取
+    const userInfoStr = localStorage.getItem('userInfo')
+    if (userInfoStr) {
+      const userInfo = JSON.parse(userInfoStr)
+      currentUserId.value = userInfo.userId || 1
     } else {
-      currentRating.value = 0
-      ratingComment.value = ''
+      currentUserId.value = 1  // 默认用户ID，实际应该提示登录
+    }
+    
+    console.log('正在获取资源评分，用户ID:', currentUserId.value, '资源ID:', resource.resourceId)
+    const response = await resourceApi.interaction.getUserReview(resource.resourceId, currentUserId.value)
+    console.log('获取用户评价响应:', response)
+    
+    // 处理不同的响应格式
+    if (response) {
+      // 检查response是否包含嵌套的data属性
+      if (response.data) {
+        userReview.value = response.data
+      } else if (response.reviewId) {
+        // 如果response直接就是评论对象
+        userReview.value = response
+      } else {
+        // 无评价
+        userReview.value = null
+      }
+      
+      // 如果找到评价，设置当前评分和评论内容
+      if (userReview.value) {
+        currentRating.value = userReview.value.rating || 0
+        ratingComment.value = userReview.value.reviewContent || ''
+        console.log('找到用户评分:', currentRating.value, '评论:', ratingComment.value)
+      } else {
+        console.log('用户未评价过此资源')
+      }
+    } else {
+      console.log('响应为空，用户未评价过此资源')
+      userReview.value = null
     }
   } catch (error) {
     console.error('获取用户评分失败:', error)
-    currentRating.value = 0
-    ratingComment.value = ''
+    userReview.value = null
   }
   
   // 显示编辑对话框
@@ -834,30 +1017,49 @@ const submitRating = async () => {
   if (!editForm.resourceId) return
   
   try {
+    console.log('提交评分:', currentRating.value, '评论:', ratingComment.value)
+    
     const response = await resourceApi.interaction.rateResource({
       resourceId: editForm.resourceId,
       rating: currentRating.value,
       reviewContent: ratingComment.value
     })
     
-    // 更新资源评分信息
-    const updatedResource = response.data
+    // 根据后端实际返回格式处理响应
+    console.log('评分提交响应:', response)
+    
+    // 检查响应格式，适应不同的响应结构
+    let updatedResource
+    if (response && response.data) {
+      // 标准格式响应: {data: {...}}
+      updatedResource = response.data
+    } else if (response && response.resourceId) {
+      // 直接返回资源对象: {...}
+      updatedResource = response
+    } else {
+      // 其他格式，需要重新获取资源信息
+      updatedResource = await resourceApi.base.getById(editForm.resourceId)
+    }
+    
     if (updatedResource) {
-      editForm.rating = updatedResource.rating
-      editForm.ratingCount = updatedResource.ratingCount
+      // 更新资源评分信息
+      editForm.rating = updatedResource.rating || 0
+      editForm.ratingCount = updatedResource.ratingCount || 0
       
       // 更新资源列表中的评分
       const index = resources.value.findIndex(r => r.resourceId === editForm.resourceId)
       if (index !== -1) {
-        resources.value[index].rating = updatedResource.rating
-        resources.value[index].ratingCount = updatedResource.ratingCount
+        resources.value[index].rating = updatedResource.rating || 0
+        resources.value[index].ratingCount = updatedResource.ratingCount || 0
       }
+      
+      ElMessage.success('评分提交成功')
+    } else {
+      ElMessage.warning('评分已提交，但无法获取更新后的评分信息')
     }
-    
-    ElMessage.success('评分提交成功')
-  } catch (error) {
+  } catch (error: any) {
     console.error('评分失败:', error)
-    ElMessage.error('评分失败')
+    ElMessage.error('评分失败: ' + (error.message || String(error)))
     // 恢复原评分
     if (userReview.value) {
       currentRating.value = userReview.value.rating

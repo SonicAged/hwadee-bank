@@ -9,7 +9,7 @@
           </el-button>
         </div>
       </template>
-      
+
       <div class="category-container">
         <!-- 分类树 -->
         <div class="category-tree">
@@ -19,32 +19,49 @@
             node-key="categoryId"
             :props="{
               children: 'children',
-              label: 'categoryName'
+              label: 'categoryName',
             }"
             :expand-on-click-node="false"
             default-expand-all
             highlight-current
-                         @node-click="handleNodeClick"
-           >
-             <template #default="{ data }">
-               <div class="tree-node">
+            @node-click="handleNodeClick"
+          >
+            <template #default="{ data }">
+              <div class="tree-node">
                 <span class="node-label">
                   <el-icon v-if="data.icon" :size="16" :color="'#409EFF'">
                     <component :is="data.icon" />
                   </el-icon>
                   <span>{{ data.categoryName }}</span>
-                  <el-tag size="small" class="black-tag" v-if="data.resourceCount > 0" type="info">
+                  <el-tag
+                    size="small"
+                    class="black-tag"
+                    v-if="data.resourceCount > 0"
+                    type="info"
+                  >
                     {{ data.resourceCount }}
                   </el-tag>
                 </span>
                 <div class="node-actions">
-                  <el-button type="primary" link @click.stop="handleAddSubCategory(data)">
+                  <el-button
+                    type="primary"
+                    link
+                    @click.stop="handleAddSubCategory(data)"
+                  >
                     <el-icon><Plus /></el-icon>
                   </el-button>
-                  <el-button type="primary" link @click.stop="handleEditCategory(data)">
+                  <el-button
+                    type="primary"
+                    link
+                    @click.stop="handleEditCategory(data)"
+                  >
                     <el-icon><Edit /></el-icon>
                   </el-button>
-                  <el-button type="danger" link @click.stop="handleDeleteCategory(data)">
+                  <el-button
+                    type="danger"
+                    link
+                    @click.stop="handleDeleteCategory(data)"
+                  >
                     <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
@@ -52,24 +69,31 @@
             </template>
           </el-tree>
         </div>
-        
+
         <!-- 分类表格 -->
         <div class="category-table">
           <el-table :data="categories" border stripe>
-            <el-table-column prop="categoryId" label="分类ID" width="80" />
-            <el-table-column prop="categoryName" label="分类名称" min-width="150" />
-            <el-table-column prop="level" label="级别" width="60" />
-            <el-table-column prop="sortOrder" label="排序" width="60" />
+            <el-table-column prop="categoryId" label="分类ID" width="40" />
+            <el-table-column prop="categoryName" label="分类名称" width="120" />
+            <el-table-column prop="level" label="级别" width="35" />
+            <el-table-column prop="sortOrder" label="排序" width="35" />
             <el-table-column label="父分类" width="120">
               <template #default="{ row }">
-                {{ row.parentId === 0 ? '顶级分类' : getCategoryName(row.parentId) }}
+                {{
+                  row.parentId === 0
+                    ? "顶级分类"
+                    : getCategoryName(row.parentId)
+                }}
               </template>
             </el-table-column>
-            <el-table-column prop="description" label="描述" min-width="150" />
-            <el-table-column prop="status" label="状态" width="80">
+            <el-table-column prop="description" label="描述" width="80" />
+            <el-table-column prop="status" label="状态" width="70">
               <template #default="{ row }">
-                <el-tag :type="row.status === 1 ? 'success' : 'danger'" class="black-tag">
-                  {{ row.status === 1 ? '启用' : '禁用' }}
+                <el-tag
+                  :type="row.status === 1 ? 'success' : 'danger'"
+                  class="black-tag"
+                >
+                  {{ row.status === 1 ? "启用" : "禁用" }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -79,7 +103,11 @@
                 <el-button type="primary" link @click="handleEditCategory(row)">
                   <el-icon><Edit /></el-icon>编辑
                 </el-button>
-                <el-button type="danger" link @click="handleDeleteCategory(row)">
+                <el-button
+                  type="danger"
+                  link
+                  @click="handleDeleteCategory(row)"
+                >
                   <el-icon><Delete /></el-icon>删除
                 </el-button>
               </template>
@@ -95,17 +123,18 @@
       :title="isEdit ? '编辑分类' : '新增分类'"
       width="600px"
     >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="分类名称" prop="categoryName">
           <el-input v-model="form.categoryName" placeholder="请输入分类名称" />
         </el-form-item>
         <el-form-item label="父级分类" prop="parentId">
-          <el-select v-model="form.parentId" placeholder="请选择父级分类" clearable class="wide-select" popper-class="wide-dropdown">
+          <el-select
+            v-model="form.parentId"
+            placeholder="请选择父级分类"
+            clearable
+            class="wide-select"
+            popper-class="wide-dropdown"
+          >
             <el-option label="顶级分类" :value="0" />
             <el-option
               v-for="item in flatCategories"
@@ -148,159 +177,155 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { resourceApi, type ResourceCategory } from '../../api/resource'
+import { ref, reactive, computed, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { Plus, Edit, Delete } from "@element-plus/icons-vue";
+import { resourceApi, type ResourceCategory } from "../../api/resource";
 
 // 数据定义
-const categories = ref<ResourceCategory[]>([])
-const treeData = ref<ResourceCategory[]>([])
-const flatCategories = ref<ResourceCategory[]>([])
-const loading = ref(false)
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const currentCategory = ref<ResourceCategory | null>(null)
+const categories = ref<ResourceCategory[]>([]);
+const treeData = ref<ResourceCategory[]>([]);
+const flatCategories = ref<ResourceCategory[]>([]);
+const loading = ref(false);
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const currentCategory = ref<ResourceCategory | null>(null);
 
 // 表单数据
-const formRef = ref()
+const formRef = ref();
 const form = reactive({
   categoryId: undefined as number | undefined,
-  categoryName: '',
+  categoryName: "",
   parentId: 0 as number,
-  icon: '',
-  description: '',
+  icon: "",
+  description: "",
   sortOrder: 0,
-  status: 1
-})
+  status: 1,
+});
 
 // 表单校验规则
 const rules = {
   categoryName: [
-    { required: true, message: '请输入分类名称', trigger: 'blur' },
-    { min: 2, max: 50, message: '长度在2到50个字符', trigger: 'blur' }
+    { required: true, message: "请输入分类名称", trigger: "blur" },
+    { min: 2, max: 50, message: "长度在2到50个字符", trigger: "blur" },
   ],
-  parentId: [
-    { required: true, message: '请选择父级分类', trigger: 'change' }
-  ],
-  sortOrder: [
-    { required: true, message: '请输入排序权重', trigger: 'blur' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'change' }
-  ]
-}
+  parentId: [{ required: true, message: "请选择父级分类", trigger: "change" }],
+  sortOrder: [{ required: true, message: "请输入排序权重", trigger: "blur" }],
+  status: [{ required: true, message: "请选择状态", trigger: "change" }],
+};
 
 // 初始化
 onMounted(async () => {
-  await loadData()
-})
+  await loadData();
+});
 
 // 加载数据
 const loadData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const [treeResult, flatResult] = await Promise.all([
       resourceApi.category.getTree(),
-      resourceApi.category.getAll()
-    ])
-    
-    treeData.value = treeResult
-    flatCategories.value = flatResult
-    categories.value = flatResult
+      resourceApi.category.getAll(),
+    ]);
+
+    treeData.value = treeResult;
+    flatCategories.value = flatResult;
+    categories.value = flatResult;
   } catch (error) {
-    console.error('加载分类数据失败:', error)
-    ElMessage.error('加载分类数据失败')
+    console.error("加载分类数据失败:", error);
+    ElMessage.error("加载分类数据失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // 获取分类名称
 const getCategoryName = (categoryId: number): string => {
-  const category = flatCategories.value.find(item => item.categoryId === categoryId)
-  return category ? category.categoryName : '-'
-}
+  const category = flatCategories.value.find(
+    (item) => item.categoryId === categoryId
+  );
+  return category ? category.categoryName : "-";
+};
 
 // 树节点点击
 const handleNodeClick = (data: ResourceCategory) => {
-  currentCategory.value = data
-}
+  currentCategory.value = data;
+};
 
 // 添加根分类
 const handleAddRootCategory = () => {
-  isEdit.value = false
-  form.categoryId = undefined
-  form.categoryName = ''
-  form.parentId = 0
-  form.icon = ''
-  form.description = ''
-  form.sortOrder = 0
-  form.status = 1
-  
-  dialogVisible.value = true
-}
+  isEdit.value = false;
+  form.categoryId = undefined;
+  form.categoryName = "";
+  form.parentId = 0;
+  form.icon = "";
+  form.description = "";
+  form.sortOrder = 0;
+  form.status = 1;
+
+  dialogVisible.value = true;
+};
 
 // 添加子分类
 const handleAddSubCategory = (data: ResourceCategory) => {
-  isEdit.value = false
-  form.categoryId = undefined
-  form.categoryName = ''
-  form.parentId = data.categoryId
-  form.icon = ''
-  form.description = ''
-  form.sortOrder = 0
-  form.status = 1
-  
-  dialogVisible.value = true
-}
+  isEdit.value = false;
+  form.categoryId = undefined;
+  form.categoryName = "";
+  form.parentId = data.categoryId;
+  form.icon = "";
+  form.description = "";
+  form.sortOrder = 0;
+  form.status = 1;
+
+  dialogVisible.value = true;
+};
 
 // 编辑分类
 const handleEditCategory = (data: ResourceCategory) => {
-  isEdit.value = true
-  form.categoryId = data.categoryId
-  form.categoryName = data.categoryName
-  form.parentId = data.parentId
-  form.icon = data.icon || ''
-  form.description = data.description || ''
-  form.sortOrder = data.sortOrder
-  form.status = data.status
-  
-  dialogVisible.value = true
-}
+  isEdit.value = true;
+  form.categoryId = data.categoryId;
+  form.categoryName = data.categoryName;
+  form.parentId = data.parentId;
+  form.icon = data.icon || "";
+  form.description = data.description || "";
+  form.sortOrder = data.sortOrder;
+  form.status = data.status;
+
+  dialogVisible.value = true;
+};
 
 // 删除分类
 const handleDeleteCategory = (data: ResourceCategory) => {
   ElMessageBox.confirm(
     `确定要删除分类 "${data.categoryName}" 吗？删除后无法恢复。`,
-    '删除确认',
+    "删除确认",
     {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
     }
   )
     .then(async () => {
       try {
-        await resourceApi.category.delete(data.categoryId)
-        ElMessage.success('删除成功')
-        loadData() // 重新加载数据
+        await resourceApi.category.delete(data.categoryId);
+        ElMessage.success("删除成功");
+        loadData(); // 重新加载数据
       } catch (error: any) {
-        ElMessage.error(`删除失败: ${error.message || error}`)
+        ElMessage.error(`删除失败: ${error.message || error}`);
       }
     })
     .catch(() => {
       // 取消删除
-    })
-}
+    });
+};
 
 // 提交表单
 const handleSubmit = async () => {
-  if (!formRef.value) return
-  
+  if (!formRef.value) return;
+
   await formRef.value.validate(async (valid: boolean) => {
-    if (!valid) return
-    
+    if (!valid) return;
+
     try {
       if (isEdit.value) {
         // 编辑
@@ -310,9 +335,9 @@ const handleSubmit = async () => {
           icon: form.icon,
           description: form.description,
           sortOrder: form.sortOrder,
-          status: form.status
-        })
-        ElMessage.success('更新成功')
+          status: form.status,
+        });
+        ElMessage.success("更新成功");
       } else {
         // 新增
         await resourceApi.category.create({
@@ -321,18 +346,18 @@ const handleSubmit = async () => {
           icon: form.icon,
           description: form.description,
           sortOrder: form.sortOrder,
-          status: form.status
-        })
-        ElMessage.success('创建成功')
+          status: form.status,
+        });
+        ElMessage.success("创建成功");
       }
-      
-      dialogVisible.value = false
-      loadData() // 重新加载数据
+
+      dialogVisible.value = false;
+      loadData(); // 重新加载数据
     } catch (error: any) {
-      ElMessage.error(`操作失败: ${error.message || error}`)
+      ElMessage.error(`操作失败: ${error.message || error}`);
     }
-  })
-}
+  });
+};
 </script>
 
 <style scoped>
@@ -403,4 +428,4 @@ const handleSubmit = async () => {
 :deep(.black-tag) {
   color: #000000 !important; /* 黑色标签文字 */
 }
-</style> 
+</style>

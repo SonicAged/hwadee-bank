@@ -3,6 +3,7 @@ package org.hwadee.backend.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.hwadee.backend.entity.SysUser;
+import org.hwadee.backend.entity.SysUserRole;
 
 import java.util.List;
 
@@ -73,4 +74,6 @@ public interface SysUserMapper {
     List<String> selectPermissionsByUserId(@Param("userId") Long userId);
 
     List<SysUser> selectUserByRoleId(@Param("roleId") Long roleId);
+
+    int insertRole(SysUserRole userRole);
 }

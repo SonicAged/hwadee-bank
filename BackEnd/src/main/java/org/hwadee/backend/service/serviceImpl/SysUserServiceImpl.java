@@ -126,6 +126,8 @@ public class SysUserServiceImpl implements SysUserService {
 
             // 插入用户
             int result = userMapper.insert(user);
+            SysUserRole userRole = new SysUserRole(user.getUserId(), 3L);
+            int resultRole = userMapper.insertRole(userRole);
             if (result > 0) {
                 // 自动创建学分账户
                 try {
