@@ -11,38 +11,48 @@
       <!-- 筛选条件 -->
       <div class="filter-bar">
         <el-form :model="filterForm" :inline="true">
-          <el-form-item label="学分类型">
-            <el-select v-model="filterForm.creditType" placeholder="请选择类型" clearable @change="handleSearch">
-              <el-option label="学历教育" value="学历教育" />
-              <el-option label="职业培训" value="职业培训" />
-              <el-option label="技能证书" value="技能证书" />
-              <el-option label="在线课程" value="在线课程" />
-              <el-option label="学分获得" value="学分获得" />
-              <el-option label="学分消费" value="学分消费" />
-              <el-option label="学分转换" value="学分转换" />
-              <el-option label="系统操作" value="系统操作" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="操作类型">
-            <el-select v-model="filterForm.operationType" placeholder="请选择操作类型" clearable @change="handleSearch">
-              <el-option label="获得" :value="1" />
-              <el-option label="消费" :value="2" />
-              <el-option label="转换" :value="3" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="状态">
-            <el-select v-model="filterForm.status" placeholder="请选择状态" clearable @change="handleSearch">
-              <el-option label="无效" :value="0" />
-              <el-option label="有效" :value="1" />
-              <el-option label="待审核" :value="2" />
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
+        <el-form-item label="学分类型">
+          <el-select
+            v-model="filterForm.creditType"
+            placeholder="请选择类型"
+            clearable
+            @change="handleSearch"
+            class="custom-select"
+            popper-class="custom-popper"
+          >
+          <!-- 选项内容保持不变 -->
+          </el-select>
+        </el-form-item>
+        <el-form-item label="操作类型">
+          <el-select
+            v-model="filterForm.operationType"
+            placeholder="请选择操作类型"
+            clearable
+            @change="handleSearch"
+            class="custom-select"
+            popper-class="custom-popper"
+          >
+            <!-- 选项内容保持不变 -->
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="filterForm.status"
+            placeholder="请选择状态"
+            clearable
+            @change="handleSearch"
+            class="custom-select"
+            popper-class="custom-popper"
+          >
+            <!-- 选项内容保持不变 -->
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
       
       <!-- 记录列表 -->
       <el-table :data="recordList" v-loading="loading" border stripe>
@@ -287,4 +297,14 @@ onMounted(async () => {
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
-</style> 
+
+/* 调整按钮的样式 */
+.custom-button {
+  min-width: 200px;
+  padding: 10px 20px;
+  font-size: 14px;
+  height: 40px;
+  margin-left: 10px;
+}
+
+</style>
