@@ -19,6 +19,7 @@ const availableCredits = ref(0)
 const monthlyCredits = ref(0)
 const totalCourses = ref(0)
 const loading = ref(true)
+const accountFetchSuccess = ref(true) // 添加学分账户获取状态
 
 // 动态问候语
 const greeting = computed(() => {
@@ -40,11 +41,13 @@ const fetchCreditAccount = async () => {
     const accountInfo = await creditApi.account.getUserAccount(user.value.userId)
     totalCredits.value = accountInfo.totalCredits || 0
     availableCredits.value = accountInfo.availableCredits || 0
+    accountFetchSuccess.value = true // 获取成功
   } catch (error) {
     console.error('获取学分账户失败:', error)
     // 使用模拟数据
     totalCredits.value = 120.5
     availableCredits.value = 98.0
+    accountFetchSuccess.value = false // 获取失败
   }
 }
 
@@ -108,7 +111,7 @@ onMounted(() => {
             {{ user?.realName ? `欢迎您使用终身学习学分银行平台，今天是您使用系统的第${Math.floor(Math.random() * 100 + 1)}天。` : '欢迎使用终身学习学分银行管理系统' }}
           </p>
           
-          <div class="stats-grid">
+          <div class="stats-grid" v-if="accountFetchSuccess">
             <div class="stat-item">
               <el-statistic title="总学分" :value="totalCredits" :precision="1">
                 <template #suffix>
@@ -137,6 +140,9 @@ onMounted(() => {
                 </template>
               </el-statistic>
             </div>
+          </div>
+          <div v-else class="no-data-message">
+            您还没有学分账户，如果您是学生，请联系管理员。
           </div>
         </div>
       </el-card>
@@ -231,5 +237,14 @@ onMounted(() => {
 .box-card {
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.no-data-message {
+  text-align: center;
+  color: #909399;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 24px;
 }
 </style>

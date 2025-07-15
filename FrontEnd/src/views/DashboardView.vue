@@ -55,7 +55,7 @@
             <el-icon><DocumentAdd /></el-icon>
             <template #title>学分申请</template>
           </el-menu-item>
-          <el-menu-item index="/dashboard/credit/conversion" v-if="hasPermission('creditconversion')">
+          <el-menu-item index="/dashboard/credit/conversion" v-if="hasPermission('credit:conversion')">
             <el-icon><RefreshRight /></el-icon>
             <template #title>学分转换</template>
           </el-menu-item>
